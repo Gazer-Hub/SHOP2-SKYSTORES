@@ -6,6 +6,7 @@
   <title>SKY MODERNIZE SAVE TECHNOLOGY LTD - Inventory</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     .page { display: none; }
     .page.active { display: block; }
@@ -26,10 +27,10 @@
 
   <nav id="main-nav" class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 no-print" style="display: none;">
     <div class="container-fluid">
-      <a class="navbar-brand fw-bold" href="#">SKY MODERNIZE SAVE TECHNOLOGY LTD</a>
+      <a class="navbar-brand fw-bold" href="#">SKY MODERNIZE SAVE TECHNOLOGY LTD<span id="nav-role-badge" class="badge bg-secondary fs-6 ms-2"></span></a>
       <div class="d-flex gap-2 flex-wrap">
         <button class="btn btn-sm btn-outline-light" onclick="navigateTo('dashboard')">Dashboard</button>
-        <button class="btn btn-sm btn-outline-light" onclick="navigateTo('stock')">Stock 🔒</button>
+        <button id="nav-btn-stock" class="btn btn-sm btn-outline-light" onclick="navigateTo('stock')">Stock 🔒</button>
         <button class="btn btn-sm btn-outline-light" onclick="navigateTo('sales')">Sales</button>
         <button class="btn btn-sm btn-outline-light" onclick="navigateTo('returns')">Customer Returns</button>
         <button class="btn btn-sm btn-outline-warning" onclick="navigateTo('supplier-returns')">Supplier Returns 📦</button>
@@ -54,7 +55,7 @@
 
               <form id="login-form">
                 <div class="mb-3">
-                  <input id="login-username" class="form-control bg-secondary text-white border-0" placeholder="Username" required>
+                  <input id="login-username" class="form-control bg-secondary text-white border-0" placeholder="Username (admin or cashier)" required>
                 </div>
                 <div class="mb-3">
                   <input id="login-password" type="password" class="form-control bg-secondary text-white border-0" placeholder="Password" required>
@@ -163,6 +164,25 @@
         </div>
       </div>
 
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-dark text-white fw-bold">📊 Weekly Revenue & Net Profit Trend</div>
+            <div class="card-body">
+              <canvas id="weeklyTrendChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-dark text-white fw-bold">🏆 Top Selling Categories</div>
+            <div class="card-body">
+              <canvas id="topCategoriesChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="card mb-4 border-info shadow-sm">
         <div class="card-header bg-info text-white fw-bold d-flex justify-content-between align-items-center">
           <span>🔍 Quick Search Available Goods</span>
@@ -195,7 +215,10 @@
       <div class="card mb-4 border-warning">
         <div class="card-header bg-warning fw-bold d-flex justify-content-between align-items-center">
           <span>⚠️ Low Stock Alert (<= 10 pcs) - Grouped by Quality / Sub-Cat</span>
-          <button class="btn btn-sm btn-dark" onclick="requestBulkLowStockRequisition()">📋 Request Selected Stock in Bulk</button>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-danger bg-white fw-bold" onclick="sendLowStockEmailAlert()">📧 Email Low Stock Alert</button>
+            <button class="btn btn-sm btn-dark" onclick="requestBulkLowStockRequisition()">📋 Request Selected Stock in Bulk</button>
+          </div>
         </div>
         <div class="card-body" id="low-stock-list"></div>
       </div>
@@ -765,9 +788,14 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // --- AUTHENTICATION ---
+    // --- AUTHENTICATION & USERS ---
     const AUTH_KEY = "sky_modernize_auth";
-    let auth = JSON.parse(localStorage.getItem(AUTH_KEY)) || { username: "admin", password: "1234" };
+    let auth = JSON.parse(localStorage.getItem(AUTH_KEY)) || { 
+      users: {
+        "admin": { password: "1234", role: "Manager" },
+        "cashier": { password: "123", role: "Cashier" }
+      }
+    };
 
     function saveAuth() {
       localStorage.setItem(AUTH_KEY, JSON.stringify(auth));
@@ -777,9 +805,13 @@
 
     // --- STATE MANAGEMENT ---
     let isLoggedIn = false;
+    let currentUserRole = "Cashier";
+    let currentUsername = "";
     let isManagerUnlocked = false;
     let isStockTotalsVisible = true;
     let salesCart = [];
+    let weeklyChartInstance = null;
+    let topCatsChartInstance = null;
 
     const DB_KEY = "sky_modernize_db";
     let db = JSON.parse(localStorage.getItem(DB_KEY)) || { 
@@ -812,6 +844,7 @@
     }
 
     function exportStockToCSV() {
+      if (currentUserRole !== "Manager") return alert("Access restricted to Managers only.");
       if (db.stock.length === 0) return alert("No stock data available to export.");
       let csv = "Model,Category,Quality/Sub-Cat,Supplier,Quantity,Cost Price (NGN),Selling Price (NGN)\n";
       db.stock.forEach(s => {
@@ -893,6 +926,7 @@
 
     // --- JSON BACKUP & IMPORT RESTORE ---
     function exportBackupJSON() {
+      if (currentUserRole !== "Manager") return alert("Backup restricted to Managers.");
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
@@ -903,6 +937,7 @@
     }
 
     function importBackupJSON(event) {
+      if (currentUserRole !== "Manager") return alert("Restore restricted to Managers.");
       const fileReader = new FileReader();
       fileReader.onload = function(e) {
         try {
@@ -938,6 +973,7 @@
 
     // --- DUPLICATE ENTRY HANDLER ---
     function duplicateStockEntry(index) {
+      if (currentUserRole !== "Manager") return alert("Restricted to Managers.");
       const item = db.stock[index];
       if (!item) return;
 
@@ -953,7 +989,7 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // --- BULK LOW STOCK REQUISITION FEATURE ---
+    // --- BULK LOW STOCK REQUISITION & EMAIL ALERTS ---
     function requestBulkLowStockRequisition() {
       const checkboxes = document.querySelectorAll('.low-stock-checkbox:checked');
       if (checkboxes.length === 0) {
@@ -985,6 +1021,28 @@
       alert(`📋 ${addedCount} Purchase Requisitions successfully created in bulk! View them in the Purchase Requisition tab.`);
     }
 
+    function sendLowStockEmailAlert() {
+      const lowStockItems = db.stock.filter(s => s.qty <= 10);
+      if (lowStockItems.length === 0) {
+        return alert("No low stock items detected!");
+      }
+
+      let emailBody = `SKY MODERNIZE SAVE TECHNOLOGY LTD - Automated Low Stock Alert\n`;
+      emailBody += `Generated On: ${new Date().toISOString().split('T')[0]}\n\n`;
+      emailBody += `The following items have dropped to critical levels (<= 10 pcs):\n\n`;
+      emailBody += `Model | Category | Quality | Remaining Qty | Supplier\n`;
+      emailBody += `--------------------------------------------------------\n`;
+
+      lowStockItems.forEach(s => {
+        emailBody += `${s.model} | ${s.category} | ${s.subcat || 'Standard'} | ${s.qty} pcs | ${s.supplier || 'N/A'}\n`;
+      });
+
+      emailBody += `\nPlease initiate a purchase requisition promptly.\n`;
+
+      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(`⚠️ CRITICAL LOW STOCK ALERT - Sky Modernize`)}&body=${encodeURIComponent(emailBody)}`;
+      window.open(gmailUrl, '_blank');
+    }
+
     // --- ROUTING & ACCESS CONTROL ---
     function navigateTo(pageId) {
       if (!isLoggedIn && pageId !== 'login') {
@@ -992,9 +1050,15 @@
         return;
       }
 
-      if (pageId === 'stock' && !isManagerUnlocked) {
-        showPage('manager-auth');
-        return;
+      if (pageId === 'stock') {
+        if (currentUserRole !== "Manager") {
+          alert("Access Denied: Stock Management is restricted to Managers.");
+          return;
+        }
+        if (!isManagerUnlocked) {
+          showPage('manager-auth');
+          return;
+        }
       }
 
       showPage(pageId);
@@ -1015,17 +1079,29 @@
     // --- AUTHENTICATION HANDLERS ---
     document.getElementById('login-form').addEventListener('submit', (e) => {
       e.preventDefault();
-      const user = document.getElementById('login-username').value;
+      const user = document.getElementById('login-username').value.trim().toLowerCase();
       const pass = document.getElementById('login-password').value;
       const alertBox = document.getElementById('login-alert');
 
-      if (user === auth.username && pass === auth.password) {
+      if (auth.users[user] && auth.users[user].password === pass) {
         isLoggedIn = true;
+        currentUsername = user;
+        currentUserRole = auth.users[user].role;
+        isManagerUnlocked = (currentUserRole === "Manager");
+
+        document.getElementById('nav-role-badge').innerText = `(${currentUserRole})`;
+        const stockNavBtn = document.getElementById('nav-btn-stock');
+        if (currentUserRole === "Manager") {
+          stockNavBtn.innerText = "Stock 🔓";
+        } else {
+          stockNavBtn.innerText = "Stock 🚫";
+        }
+
         alertBox.classList.add('d-none');
         e.target.reset();
         navigateTo('dashboard');
       } else {
-        alertBox.innerText = "Invalid credentials";
+        alertBox.innerText = "Invalid username or password";
         alertBox.classList.remove('d-none');
       }
     });
@@ -1061,7 +1137,7 @@
         return;
       }
 
-      if (current !== auth.password) {
+      if (current !== auth.users[currentUsername]?.password) {
         alertBox.className = "alert alert-danger py-2";
         alertBox.innerText = "Current password is incorrect.";
         alertBox.classList.remove('d-none');
@@ -1075,7 +1151,7 @@
         return;
       }
 
-      auth.password = newPwd;
+      auth.users[currentUsername].password = newPwd;
       saveAuth();
 
       alertBox.className = "alert alert-success py-2";
@@ -1087,6 +1163,8 @@
     function logout() {
       isLoggedIn = false;
       isManagerUnlocked = false;
+      currentUserRole = "Cashier";
+      currentUsername = "";
       navigateTo('login');
     }
 
@@ -1215,7 +1293,7 @@
       searchDashboardGoods();
     }
 
-    // --- RENDERING FUNCTIONS ---
+    // --- RENDERING FUNCTIONS & CHARTS ---
     function renderAll() {
       renderDashboard();
       renderStock();
@@ -1310,6 +1388,7 @@
       document.getElementById('dash-net').innerText = `₦${netProfit.toLocaleString()}`;
 
       searchDashboardGoods();
+      renderCharts(filteredSales);
 
       const lowStockList = document.getElementById('low-stock-list');
       const lowStockWithIndex = db.stock.map((item, originalIndex) => ({ ...item, originalIndex })).filter(s => s.qty <= 10);
@@ -1342,6 +1421,68 @@
         }
         lowStockList.innerHTML = html;
       }
+    }
+
+    function renderCharts(salesSubset) {
+      // 1. Weekly Trend Chart Data
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const revenueByDay = [0, 0, 0, 0, 0, 0, 0];
+      const profitByDay = [0, 0, 0, 0, 0, 0, 0];
+
+      salesSubset.forEach(s => {
+        if (s.date) {
+          const d = new Date(s.date);
+          const dayIdx = d.getDay();
+          if (!isNaN(dayIdx)) {
+            const rev = s.sell_price * s.qty;
+            const prof = (s.sell_price - s.cost_price) * s.qty;
+            revenueByDay[dayIdx] += rev;
+            profitByDay[dayIdx] += prof;
+          }
+        }
+      });
+
+      const ctxWeekly = document.getElementById('weeklyTrendChart').getContext('2d');
+      if (weeklyChartInstance) weeklyChartInstance.destroy();
+
+      weeklyChartInstance = new Chart(ctxWeekly, {
+        type: 'line',
+        data: {
+          labels: days,
+          datasets: [
+            { label: 'Revenue (₦)', data: revenueByDay, borderColor: '#198754', backgroundColor: 'rgba(25,135,84,0.1)', tension: 0.2, fill: true },
+            { label: 'Net Profit (₦)', data: profitByDay, borderColor: '#0dcaf0', backgroundColor: 'rgba(13,202,240,0.1)', tension: 0.2, fill: true }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      // 2. Top Categories Chart Data
+      const categoryTotals = {};
+      salesSubset.forEach(s => {
+        const stockItem = db.stock.find(st => st.model.toLowerCase() === s.model.toLowerCase());
+        const cat = stockItem ? stockItem.category : 'General';
+        categoryTotals[cat] = (categoryTotals[cat] || 0) + (s.sell_price * s.qty);
+      });
+
+      const catLabels = Object.keys(categoryTotals);
+      const catData = Object.values(categoryTotals);
+
+      const ctxCats = document.getElementById('topCategoriesChart').getContext('2d');
+      if (topCatsChartInstance) topCatsChartInstance.destroy();
+
+      topCatsChartInstance = new Chart(ctxCats, {
+        type: 'bar',
+        data: {
+          labels: catLabels.length > 0 ? catLabels : ['No Sales'],
+          datasets: [{
+            label: 'Sales Revenue by Category (₦)',
+            data: catData.length > 0 ? catData : [0],
+            backgroundColor: ['#0d6efd', '#ffc107', '#198754', '#dc3545', '#6c757d']
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
     }
 
     function renderStock(filterQuery = "") {
@@ -1702,7 +1843,7 @@
             </div>
             <hr>
             <div class="center">
-              <p>THANKS FOR YOUR PATRONAGE!!!</p>
+              <p>Thank you for your business!</p>
             </div>
             <script>
               window.onload = function() { window.print(); window.close(); }
@@ -2261,6 +2402,7 @@
     // --- FORM ACTIONS WITH DATA VALIDATION ---
     document.getElementById('stock-form').addEventListener('submit', (e) => {
       e.preventDefault();
+      if (currentUserRole !== "Manager") return alert("Restricted to Managers.");
       const qty = parseInt(document.getElementById('stk-qty').value);
       const cost = parseInt(document.getElementById('stk-cost').value);
       const sell = parseInt(document.getElementById('stk-sell').value);
@@ -2285,6 +2427,7 @@
     let editModalInstance = null;
 
     function openEditModal(index) {
+      if (currentUserRole !== "Manager") return alert("Restricted to Managers.");
       const item = db.stock[index];
       document.getElementById('edit-stk-index').value = index;
       document.getElementById('edit-stk-model').value = item.model;
@@ -2301,6 +2444,7 @@
 
     document.getElementById('edit-stock-form').addEventListener('submit', (e) => {
       e.preventDefault();
+      if (currentUserRole !== "Manager") return alert("Restricted to Managers.");
       const index = parseInt(document.getElementById('edit-stk-index').value);
       const qty = parseInt(document.getElementById('edit-stk-qty').value);
       const cost = parseInt(document.getElementById('edit-stk-cost').value);
@@ -2464,6 +2608,7 @@
     });
 
     function deleteStock(index) {
+      if (currentUserRole !== "Manager") return alert("Restricted to Managers.");
       if (confirm("Delete this stock item?")) {
         db.stock.splice(index, 1);
         saveDB();
