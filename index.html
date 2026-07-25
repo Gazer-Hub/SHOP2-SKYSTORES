@@ -787,14 +787,51 @@
     </div>
   </div>
 
+  <div id="reconciliationModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 450px; margin: 50px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+        <h3>End-of-Day Cash Drawer Reconciliation</h3>
+        <hr style="margin-bottom: 15px;">
+        
+        <div class="form-group" style="margin-bottom: 10px;">
+            <label>Opening Float ($):</label>
+            <input type="number" id="reconOpeningFloat" value="100.00" class="form-control" style="width: 100%; padding: 8px;" oninput="calculateReconDiscrepancy()">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 10px;">
+            <label>Total Cash Sales (From System) ($):</label>
+            <input type="number" id="reconSystemSales" readonly class="form-control" style="width: 100%; padding: 8px; background: #e9ecef;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label>Actual Physical Cash Count ($):</label>
+            <input type="number" id="reconActualCash" placeholder="Enter counted cash in drawer" class="form-control" style="width: 100%; padding: 8px;" oninput="calculateReconDiscrepancy()">
+        </div>
+
+        <div class="summary-box" style="background: #f8f9fa; padding: 12px; border-radius: 5px; margin-bottom: 15px;">
+            <p style="margin: 5px 0;"><strong>Expected Cash:</strong> <span id="reconExpectedCash">$0.00</span></p>
+            <p style="margin: 5px 0;"><strong>Difference (Over/Short):</strong> <span id="reconDiscrepancy" style="font-weight: bold;">$0.00</span></p>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label>Closing Notes / Reason for Discrepancy:</label>
+            <textarea id="reconNotes" placeholder="Optional notes..." class="form-control" style="width: 100%; padding: 8px; height: 60px;"></textarea>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button onclick="closeReconciliationModal()" style="padding: 8px 15px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+            <button onclick="saveReconciliationReport()" style="padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Save & Lock Report</button>
+        </div>
+    </div>
+</div>
+  
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // --- AUTHENTICATION & USERS ---
     const AUTH_KEY = "sky_modernize_auth";
     let auth = JSON.parse(localStorage.getItem(AUTH_KEY)) || { 
       users: {
-        "admin": { password: "1234", role: "Manager" },
-        "cashier": { password: "123", role: "Cashier" }
+        "SKYADMIN": { password: "1234", role: "Manager" },
+        "cashier": { password: "1234", role: "Cashier" }
       }
     };
 
@@ -990,6 +1027,70 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+// Open modal and fetch current system cash sales dynamically from your app data
+function openReconciliationModal() {
+    document.getElementById('reconciliationModal').style.display = 'block';
+    
+    // Assuming you have a global variable or function tracking total cash sales in your POS:
+    // e.g., let currentCashSales = window.posSessionData ? window.posSessionData.cashSales : 0;
+    let systemCashSales = window.totalCashSalesToday || 250.00; // Fallback example value
+    
+    document.getElementById('reconSystemSales').value = systemCashSales.toFixed(2);
+    calculateReconDiscrepancy();
+}
+
+// Close the modal
+function closeReconciliationModal() {
+    document.getElementById('reconciliationModal').style.display = 'none';
+}
+
+// Live calculation formula
+function calculateReconDiscrepancy() {
+    let openingFloat = parseFloat(document.getElementById('reconOpeningFloat').value) || 0;
+    let systemSales = parseFloat(document.getElementById('reconSystemSales').value) || 0;
+    let actualCash = parseFloat(document.getElementById('reconActualCash').value) || 0;
+
+    let expectedCash = openingFloat + systemSales;
+    let discrepancy = actualCash - expectedCash;
+
+    document.getElementById('reconExpectedCash').innerText = `$${expectedCash.toFixed(2)}`;
+    
+    let discrepancyElement = document.getElementById('reconDiscrepancy');
+    discrepancyElement.innerText = `$${discrepancy.toFixed(2)}`;
+
+    // Color-code based on status: Red for short, Green for exact match, Orange for over
+    if (discrepancy < 0) {
+        discrepancyElement.style.color = '#dc3545'; // Shortage
+        discrepancyElement.innerText += ' (Short)';
+    } else if (discrepancy > 0) {
+        discrepancyElement.style.color = '#fd7e14'; // Overage
+        discrepancyElement.innerText += ' (Over)';
+    } else {
+        discrepancyElement.style.color = '#28a745'; // Balanced
+        discrepancyElement.innerText += ' (Balanced)';
+    }
+}
+
+// Save the report locally (or push to your database backend)
+function saveReconciliationReport() {
+    let reportData = {
+        date: new Date().toISOString(),
+        openingFloat: document.getElementById('reconOpeningFloat').value,
+        systemSales: document.getElementById('reconSystemSales').value,
+        actualCash: document.getElementById('reconActualCash').value,
+        discrepancy: document.getElementById('reconDiscrepancy').innerText,
+        notes: document.getElementById('reconNotes').value
+    };
+
+    // Save to LocalStorage as a quick implementation demo
+    let savedReports = JSON.parse(localStorage.getItem('drawer_reconciliations') || '[]');
+    savedReports.push(reportData);
+    localStorage.setItem('drawer_reconciliations', JSON.stringify(savedReports));
+
+    alert("Reconciliation report successfully saved and locked!");
+    closeReconciliationModal();
+}
+    
     // --- BULK LOW STOCK REQUISITION & EMAIL ALERTS ---
     function requestBulkLowStockRequisition() {
       const checkboxes = document.querySelectorAll('.low-stock-checkbox:checked');
@@ -2330,69 +2431,6 @@
       }
     }
 
-    // Open modal and fetch current system cash sales dynamically from your app data
-function openReconciliationModal() {
-    document.getElementById('reconciliationModal').style.display = 'block';
-    
-    // Assuming you have a global variable or function tracking total cash sales in your POS:
-    // e.g., let currentCashSales = window.posSessionData ? window.posSessionData.cashSales : 0;
-    let systemCashSales = window.totalCashSalesToday || 250.00; // Fallback example value
-    
-    document.getElementById('reconSystemSales').value = systemCashSales.toFixed(2);
-    calculateReconDiscrepancy();
-}
-
-// Close the modal
-function closeReconciliationModal() {
-    document.getElementById('reconciliationModal').style.display = 'none';
-}
-
-// Live calculation formula
-function calculateReconDiscrepancy() {
-    let openingFloat = parseFloat(document.getElementById('reconOpeningFloat').value) || 0;
-    let systemSales = parseFloat(document.getElementById('reconSystemSales').value) || 0;
-    let actualCash = parseFloat(document.getElementById('reconActualCash').value) || 0;
-
-    let expectedCash = openingFloat + systemSales;
-    let discrepancy = actualCash - expectedCash;
-
-    document.getElementById('reconExpectedCash').innerText = `$${expectedCash.toFixed(2)}`;
-    
-    let discrepancyElement = document.getElementById('reconDiscrepancy');
-    discrepancyElement.innerText = `$${discrepancy.toFixed(2)}`;
-
-    // Color-code based on status: Red for short, Green for exact match, Orange for over
-    if (discrepancy < 0) {
-        discrepancyElement.style.color = '#dc3545'; // Shortage
-        discrepancyElement.innerText += ' (Short)';
-    } else if (discrepancy > 0) {
-        discrepancyElement.style.color = '#fd7e14'; // Overage
-        discrepancyElement.innerText += ' (Over)';
-    } else {
-        discrepancyElement.style.color = '#28a745'; // Balanced
-        discrepancyElement.innerText += ' (Balanced)';
-    }
-}
-
-// Save the report locally (or push to your database backend)
-function saveReconciliationReport() {
-    let reportData = {
-        date: new Date().toISOString(),
-        openingFloat: document.getElementById('reconOpeningFloat').value,
-        systemSales: document.getElementById('reconSystemSales').value,
-        actualCash: document.getElementById('reconActualCash').value,
-        discrepancy: document.getElementById('reconDiscrepancy').innerText,
-        notes: document.getElementById('reconNotes').value
-    };
-
-    // Save to LocalStorage as a quick implementation demo
-    let savedReports = JSON.parse(localStorage.getItem('drawer_reconciliations') || '[]');
-    savedReports.push(reportData);
-    localStorage.setItem('drawer_reconciliations', JSON.stringify(savedReports));
-
-    alert("Reconciliation report successfully saved and locked!");
-    closeReconciliationModal();
-}
     document.getElementById('requisition-form').addEventListener('submit', (e) => {
       e.preventDefault();
       const qty = parseInt(document.getElementById('req-qty').value);
@@ -2682,42 +2720,6 @@ function saveReconciliationReport() {
     // Initial Load
     renderAll();
     navigateTo('login');
- <div id="reconciliationModal" class="modal" style="display: none;">
-    <div class="modal-content" style="max-width: 450px; margin: 50px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-        <h3>End-of-Day Cash Drawer Reconciliation</h3>
-        <hr style="margin-bottom: 15px;">
-        
-        <div class="form-group" style="margin-bottom: 10px;">
-            <label>Opening Float ($):</label>
-            <input type="number" id="reconOpeningFloat" value="100.00" class="form-control" style="width: 100%; padding: 8px;" oninput="calculateReconDiscrepancy()">
-        </div>
-
-        <div class="form-group" style="margin-bottom: 10px;">
-            <label>Total Cash Sales (From System) ($):</label>
-            <input type="number" id="reconSystemSales" readonly class="form-control" style="width: 100%; padding: 8px; background: #e9ecef;">
-        </div>
-
-        <div class="form-group" style="margin-bottom: 15px;">
-            <label>Actual Physical Cash Count ($):</label>
-            <input type="number" id="reconActualCash" placeholder="Enter counted cash in drawer" class="form-control" style="width: 100%; padding: 8px;" oninput="calculateReconDiscrepancy()">
-        </div>
-
-        <div class="summary-box" style="background: #f8f9fa; padding: 12px; border-radius: 5px; margin-bottom: 15px;">
-            <p style="margin: 5px 0;"><strong>Expected Cash:</strong> <span id="reconExpectedCash">$0.00</span></p>
-            <p style="margin: 5px 0;"><strong>Difference (Over/Short):</strong> <span id="reconDiscrepancy" style="font-weight: bold;">$0.00</span></p>
-        </div>
-
-        <div class="form-group" style="margin-bottom: 15px;">
-            <label>Closing Notes / Reason for Discrepancy:</label>
-            <textarea id="reconNotes" placeholder="Optional notes..." class="form-control" style="width: 100%; padding: 8px; height: 60px;"></textarea>
-        </div>
-
-        <div style="display: flex; justify-content: flex-end; gap: 10px;">
-            <button onclick="closeReconciliationModal()" style="padding: 8px 15px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
-            <button onclick="saveReconciliationReport()" style="padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Save & Lock Report</button>
-        </div>
-    </div>
-</div>
   </script>
 </body>
 </html>
