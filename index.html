@@ -409,7 +409,13 @@
               <input id="sale-customer" class="form-control" placeholder="Enter Customer Name" required>
             </div>
             <div class="col-md-4 d-flex align-items-end">
-              <button type="submit" class="btn btn-success fw-bold w-100">Complete & Record Sale</button>
+            <select id="salePaymentMethod" class="form-control">
+        <option value="Cash">Cash ₦</option>
+         <option value="Transfer">Bank Transfer</option>
+            </select>
+              
+              <button onclick="recordNewSale()">Complete & Record Sale</button>
+
             </div>
           </form>
         </div>
@@ -1394,7 +1400,42 @@ function saveReconciliationReport() {
       document.getElementById('dash-goods-search-input').value = '';
       searchDashboardGoods();
     }
+// --- NEW SALE RECORDING FUNCTION WITH PAYMENT METHOD ---
+function recordNewSale() {
+    // 1. Get values from your form inputs
+    let customerName = document.getElementById('customerName') ? document.getElementById('customerName').value : 'Walk-in Customer';
+    let paymentMethod = document.getElementById('salePaymentMethod') ? document.getElementById('salePaymentMethod'].value : 'Cash';
+    
+    // Assuming you have your cart items total stored in a variable
+    let totalAmount = typeof cartTotal !== 'undefined' ? cartTotal : 0; 
 
+    if (totalAmount <= 0) {
+        return alert("Your cart is empty or total is zero!");
+    }
+
+    // 2. Create the sale object
+    let newSale = {
+        id: Date.now(),
+        date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+        customer: customerName,
+        paymentMethod: paymentMethod, // 'Cash' or 'Transfer'
+        amount: totalAmount
+    };
+
+    // 3. Push into your global database object (matching your 'db.sales' structure seen in GitHub)
+    if (typeof db !== 'undefined' && db.sales) {
+        db.sales.push(newSale);
+        saveDb(); // Saves to localStorage and updates render
+    } else {
+        // Fallback if db object isn't global
+        let fallbackSales = JSON.parse(localStorage.getItem('store_sales') || '[]');
+        fallbackSales.push(newSale);
+        localStorage.setItem('store_sales', JSON.stringify(fallbackSales));
+    }
+
+    alert("Sale successfully recorded as " + paymentMethod + "!");
+        }
+    
     // --- RENDERING FUNCTIONS & CHARTS ---
     function renderAll() {
       renderDashboard();
