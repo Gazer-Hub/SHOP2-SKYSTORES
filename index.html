@@ -6,7 +6,6 @@
   <title>SKY MODERNIZE SAVE TECHNOLOGY LTD - Inventory</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     .page { display: none; }
     .page.active { display: block; }
@@ -27,15 +26,14 @@
 
   <nav id="main-nav" class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 no-print" style="display: none;">
     <div class="container-fluid">
-      <a class="navbar-brand fw-bold" href="#">SKY MODERNIZE SAVE TECHNOLOGY LTD<span id="nav-role-badge" class="badge bg-secondary fs-6 ms-2"></span></a>
+      <a class="navbar-brand fw-bold" href="#">SKY MODERNIZE SAVE TECHNOLOGY LTD</a>
       <div class="d-flex gap-2 flex-wrap">
         <button class="btn btn-sm btn-outline-light" onclick="navigateTo('dashboard')">Dashboard</button>
-        <button id="nav-btn-stock" class="btn btn-sm btn-outline-light" onclick="navigateTo('stock')">Stock 🔒</button>
+        <button class="btn btn-sm btn-outline-light" onclick="navigateTo('stock')">Stock 🔒</button>
         <button class="btn btn-sm btn-outline-light" onclick="navigateTo('sales')">Sales</button>
         <button class="btn btn-sm btn-outline-light" onclick="navigateTo('returns')">Customer Returns</button>
         <button class="btn btn-sm btn-outline-warning" onclick="navigateTo('supplier-returns')">Supplier Returns 📦</button>
         <button class="btn btn-sm btn-outline-info" onclick="navigateTo('purchase-requisition')">Purchase Requisition 📋</button>
-        <button class="nav-btn" onclick="openReconciliationModal()">📊 Cash Drawer Reconciliation</button>
         <button class="btn btn-sm btn-outline-light" onclick="navigateTo('change-password')">Password 🔑</button>
         <button class="btn btn-sm btn-danger ms-2" onclick="logout()">Logout</button>
       </div>
@@ -56,7 +54,7 @@
 
               <form id="login-form">
                 <div class="mb-3">
-                  <input id="login-username" class="form-control bg-secondary text-white border-0" placeholder="Username (admin or cashier)" required>
+                  <input id="login-username" class="form-control bg-secondary text-white border-0" placeholder="Username" required>
                 </div>
                 <div class="mb-3">
                   <input id="login-password" type="password" class="form-control bg-secondary text-white border-0" placeholder="Password" required>
@@ -165,25 +163,6 @@
         </div>
       </div>
 
-      <div class="row g-3 mb-4">
-        <div class="col-md-6">
-          <div class="card shadow-sm border-0 h-100">
-            <div class="card-header bg-dark text-white fw-bold">📊 Weekly Revenue & Net Profit Trend</div>
-            <div class="card-body">
-              <canvas id="weeklyTrendChart"></canvas>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="card shadow-sm border-0 h-100">
-            <div class="card-header bg-dark text-white fw-bold">🏆 Top Selling Categories</div>
-            <div class="card-body">
-              <canvas id="topCategoriesChart"></canvas>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div class="card mb-4 border-info shadow-sm">
         <div class="card-header bg-info text-white fw-bold d-flex justify-content-between align-items-center">
           <span>🔍 Quick Search Available Goods</span>
@@ -216,10 +195,7 @@
       <div class="card mb-4 border-warning">
         <div class="card-header bg-warning fw-bold d-flex justify-content-between align-items-center">
           <span>⚠️ Low Stock Alert (<= 10 pcs) - Grouped by Quality / Sub-Cat</span>
-          <div class="d-flex gap-2">
-            <button class="btn btn-sm btn-outline-danger bg-white fw-bold" onclick="sendLowStockEmailAlert()">📧 Email Low Stock Alert</button>
-            <button class="btn btn-sm btn-dark" onclick="requestBulkLowStockRequisition()">📋 Request Selected Stock in Bulk</button>
-          </div>
+          <button class="btn btn-sm btn-dark" onclick="requestBulkLowStockRequisition()">📋 Request Selected Stock in Bulk</button>
         </div>
         <div class="card-body" id="low-stock-list"></div>
       </div>
@@ -409,13 +385,7 @@
               <input id="sale-customer" class="form-control" placeholder="Enter Customer Name" required>
             </div>
             <div class="col-md-4 d-flex align-items-end">
-            <select id="salePaymentMethod" class="form-control">
-        <option value="Cash">Cash ₦</option>
-         <option value="Transfer">Bank Transfer</option>
-            </select>
-              
-              <button onclick="recordNewSale()">Complete & Record Sale</button>
-
+              <button type="submit" class="btn btn-success fw-bold w-100">Complete & Record Sale</button>
             </div>
           </form>
         </div>
@@ -793,53 +763,11 @@
     </div>
   </div>
 
-  <div id="reconciliationModal" class="modal" style="display: none;">
-    <div class="modal-content" style="max-width: 450px; margin: 50px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-        <h3>End-of-Day Cash Drawer Reconciliation</h3>
-        <hr style="margin-bottom: 15px;">
-        
-        <div class="form-group" style="margin-bottom: 10px;">
-            <label>Opening Float ($):</label>
-            <input type="number" id="reconOpeningFloat" value="100.00" class="form-control" style="width: 100%; padding: 8px;" oninput="calculateReconDiscrepancy()">
-        </div>
-
-        <div class="form-group" style="margin-bottom: 10px;">
-            <label>Total Cash Sales (From System) ($):</label>
-            <input type="number" id="reconSystemSales" readonly class="form-control" style="width: 100%; padding: 8px; background: #e9ecef;">
-        </div>
-
-        <div class="form-group" style="margin-bottom: 15px;">
-            <label>Actual Physical Cash Count ($):</label>
-            <input type="number" id="reconActualCash" placeholder="Enter counted cash in drawer" class="form-control" style="width: 100%; padding: 8px;" oninput="calculateReconDiscrepancy()">
-        </div>
-
-        <div class="summary-box" style="background: #f8f9fa; padding: 12px; border-radius: 5px; margin-bottom: 15px;">
-            <p style="margin: 5px 0;"><strong>Expected Cash:</strong> <span id="reconExpectedCash">$0.00</span></p>
-            <p style="margin: 5px 0;"><strong>Difference (Over/Short):</strong> <span id="reconDiscrepancy" style="font-weight: bold;">$0.00</span></p>
-        </div>
-
-        <div class="form-group" style="margin-bottom: 15px;">
-            <label>Closing Notes / Reason for Discrepancy:</label>
-            <textarea id="reconNotes" placeholder="Optional notes..." class="form-control" style="width: 100%; padding: 8px; height: 60px;"></textarea>
-        </div>
-
-        <div style="display: flex; justify-content: flex-end; gap: 10px;">
-            <button onclick="closeReconciliationModal()" style="padding: 8px 15px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
-            <button onclick="saveReconciliationReport()" style="padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Save & Lock Report</button>
-        </div>
-    </div>
-</div>
-  
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // --- AUTHENTICATION & USERS ---
+    // --- AUTHENTICATION ---
     const AUTH_KEY = "sky_modernize_auth";
-    let auth = JSON.parse(localStorage.getItem(AUTH_KEY)) || { 
-      users: {
-        "SKYADMIN": { password: "1234", role: "Manager" },
-        "cashier": { password: "1234", role: "Cashier" }
-      }
-    };
+    let auth = JSON.parse(localStorage.getItem(AUTH_KEY)) || { username: "admin", password: "1234" };
 
     function saveAuth() {
       localStorage.setItem(AUTH_KEY, JSON.stringify(auth));
@@ -849,13 +777,9 @@
 
     // --- STATE MANAGEMENT ---
     let isLoggedIn = false;
-    let currentUserRole = "Cashier";
-    let currentUsername = "";
     let isManagerUnlocked = false;
     let isStockTotalsVisible = true;
     let salesCart = [];
-    let weeklyChartInstance = null;
-    let topCatsChartInstance = null;
 
     const DB_KEY = "sky_modernize_db";
     let db = JSON.parse(localStorage.getItem(DB_KEY)) || { 
@@ -888,7 +812,6 @@
     }
 
     function exportStockToCSV() {
-      if (currentUserRole !== "Manager") return alert("Access restricted to Managers only.");
       if (db.stock.length === 0) return alert("No stock data available to export.");
       let csv = "Model,Category,Quality/Sub-Cat,Supplier,Quantity,Cost Price (NGN),Selling Price (NGN)\n";
       db.stock.forEach(s => {
@@ -970,7 +893,6 @@
 
     // --- JSON BACKUP & IMPORT RESTORE ---
     function exportBackupJSON() {
-      if (currentUserRole !== "Manager") return alert("Backup restricted to Managers.");
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
@@ -981,7 +903,6 @@
     }
 
     function importBackupJSON(event) {
-      if (currentUserRole !== "Manager") return alert("Restore restricted to Managers.");
       const fileReader = new FileReader();
       fileReader.onload = function(e) {
         try {
@@ -1017,7 +938,6 @@
 
     // --- DUPLICATE ENTRY HANDLER ---
     function duplicateStockEntry(index) {
-      if (currentUserRole !== "Manager") return alert("Restricted to Managers.");
       const item = db.stock[index];
       if (!item) return;
 
@@ -1033,71 +953,7 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-// Open modal and fetch current system cash sales dynamically from your app data
-function openReconciliationModal() {
-    document.getElementById('reconciliationModal').style.display = 'block';
-    
-    // Assuming you have a global variable or function tracking total cash sales in your POS:
-    // e.g., let currentCashSales = window.posSessionData ? window.posSessionData.cashSales : 0;
-    let systemCashSales = window.totalCashSalesToday || 250.00; // Fallback example value
-    
-    document.getElementById('reconSystemSales').value = systemCashSales.toFixed(2);
-    calculateReconDiscrepancy();
-}
-
-// Close the modal
-function closeReconciliationModal() {
-    document.getElementById('reconciliationModal').style.display = 'none';
-}
-
-// Live calculation formula
-function calculateReconDiscrepancy() {
-    let openingFloat = parseFloat(document.getElementById('reconOpeningFloat').value) || 0;
-    let systemSales = parseFloat(document.getElementById('reconSystemSales').value) || 0;
-    let actualCash = parseFloat(document.getElementById('reconActualCash').value) || 0;
-
-    let expectedCash = openingFloat + systemSales;
-    let discrepancy = actualCash - expectedCash;
-
-    document.getElementById('reconExpectedCash').innerText = `$${expectedCash.toFixed(2)}`;
-    
-    let discrepancyElement = document.getElementById('reconDiscrepancy');
-    discrepancyElement.innerText = `$${discrepancy.toFixed(2)}`;
-
-    // Color-code based on status: Red for short, Green for exact match, Orange for over
-    if (discrepancy < 0) {
-        discrepancyElement.style.color = '#dc3545'; // Shortage
-        discrepancyElement.innerText += ' (Short)';
-    } else if (discrepancy > 0) {
-        discrepancyElement.style.color = '#fd7e14'; // Overage
-        discrepancyElement.innerText += ' (Over)';
-    } else {
-        discrepancyElement.style.color = '#28a745'; // Balanced
-        discrepancyElement.innerText += ' (Balanced)';
-    }
-}
-
-// Save the report locally (or push to your database backend)
-function saveReconciliationReport() {
-    let reportData = {
-        date: new Date().toISOString(),
-        openingFloat: document.getElementById('reconOpeningFloat').value,
-        systemSales: document.getElementById('reconSystemSales').value,
-        actualCash: document.getElementById('reconActualCash').value,
-        discrepancy: document.getElementById('reconDiscrepancy').innerText,
-        notes: document.getElementById('reconNotes').value
-    };
-
-    // Save to LocalStorage as a quick implementation demo
-    let savedReports = JSON.parse(localStorage.getItem('drawer_reconciliations') || '[]');
-    savedReports.push(reportData);
-    localStorage.setItem('drawer_reconciliations', JSON.stringify(savedReports));
-
-    alert("Reconciliation report successfully saved and locked!");
-    closeReconciliationModal();
-}
-    
-    // --- BULK LOW STOCK REQUISITION & EMAIL ALERTS ---
+    // --- BULK LOW STOCK REQUISITION FEATURE ---
     function requestBulkLowStockRequisition() {
       const checkboxes = document.querySelectorAll('.low-stock-checkbox:checked');
       if (checkboxes.length === 0) {
@@ -1129,28 +985,6 @@ function saveReconciliationReport() {
       alert(`📋 ${addedCount} Purchase Requisitions successfully created in bulk! View them in the Purchase Requisition tab.`);
     }
 
-    function sendLowStockEmailAlert() {
-      const lowStockItems = db.stock.filter(s => s.qty <= 10);
-      if (lowStockItems.length === 0) {
-        return alert("No low stock items detected!");
-      }
-
-      let emailBody = `SKY MODERNIZE SAVE TECHNOLOGY LTD - Automated Low Stock Alert\n`;
-      emailBody += `Generated On: ${new Date().toISOString().split('T')[0]}\n\n`;
-      emailBody += `The following items have dropped to critical levels (<= 10 pcs):\n\n`;
-      emailBody += `Model | Category | Quality | Remaining Qty | Supplier\n`;
-      emailBody += `--------------------------------------------------------\n`;
-
-      lowStockItems.forEach(s => {
-        emailBody += `${s.model} | ${s.category} | ${s.subcat || 'Standard'} | ${s.qty} pcs | ${s.supplier || 'N/A'}\n`;
-      });
-
-      emailBody += `\nPlease initiate a purchase requisition promptly.\n`;
-
-      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(`⚠️ CRITICAL LOW STOCK ALERT - Sky Modernize`)}&body=${encodeURIComponent(emailBody)}`;
-      window.open(gmailUrl, '_blank');
-    }
-
     // --- ROUTING & ACCESS CONTROL ---
     function navigateTo(pageId) {
       if (!isLoggedIn && pageId !== 'login') {
@@ -1158,15 +992,9 @@ function saveReconciliationReport() {
         return;
       }
 
-      if (pageId === 'stock') {
-        if (currentUserRole !== "Manager") {
-          alert("Access Denied: Stock Management is restricted to Managers.");
-          return;
-        }
-        if (!isManagerUnlocked) {
-          showPage('manager-auth');
-          return;
-        }
+      if (pageId === 'stock' && !isManagerUnlocked) {
+        showPage('manager-auth');
+        return;
       }
 
       showPage(pageId);
@@ -1187,29 +1015,17 @@ function saveReconciliationReport() {
     // --- AUTHENTICATION HANDLERS ---
     document.getElementById('login-form').addEventListener('submit', (e) => {
       e.preventDefault();
-      const user = document.getElementById('login-username').value.trim().toLowerCase();
+      const user = document.getElementById('login-username').value;
       const pass = document.getElementById('login-password').value;
       const alertBox = document.getElementById('login-alert');
 
-      if (auth.users[user] && auth.users[user].password === pass) {
+      if (user === auth.username && pass === auth.password) {
         isLoggedIn = true;
-        currentUsername = user;
-        currentUserRole = auth.users[user].role;
-        isManagerUnlocked = (currentUserRole === "Manager");
-
-        document.getElementById('nav-role-badge').innerText = `(${currentUserRole})`;
-        const stockNavBtn = document.getElementById('nav-btn-stock');
-        if (currentUserRole === "Manager") {
-          stockNavBtn.innerText = "Stock 🔓";
-        } else {
-          stockNavBtn.innerText = "Stock 🚫";
-        }
-
         alertBox.classList.add('d-none');
         e.target.reset();
         navigateTo('dashboard');
       } else {
-        alertBox.innerText = "Invalid username or password";
+        alertBox.innerText = "Invalid credentials";
         alertBox.classList.remove('d-none');
       }
     });
@@ -1245,7 +1061,7 @@ function saveReconciliationReport() {
         return;
       }
 
-      if (current !== auth.users[currentUsername]?.password) {
+      if (current !== auth.password) {
         alertBox.className = "alert alert-danger py-2";
         alertBox.innerText = "Current password is incorrect.";
         alertBox.classList.remove('d-none');
@@ -1259,7 +1075,7 @@ function saveReconciliationReport() {
         return;
       }
 
-      auth.users[currentUsername].password = newPwd;
+      auth.password = newPwd;
       saveAuth();
 
       alertBox.className = "alert alert-success py-2";
@@ -1271,8 +1087,6 @@ function saveReconciliationReport() {
     function logout() {
       isLoggedIn = false;
       isManagerUnlocked = false;
-      currentUserRole = "Cashier";
-      currentUsername = "";
       navigateTo('login');
     }
 
@@ -1400,43 +1214,8 @@ function saveReconciliationReport() {
       document.getElementById('dash-goods-search-input').value = '';
       searchDashboardGoods();
     }
-// --- NEW SALE RECORDING FUNCTION WITH PAYMENT METHOD ---
-function recordNewSale() {
-    // 1. Get values from your form inputs
-    let customerName = document.getElementById('customerName') ? document.getElementById('customerName').value : 'Walk-in Customer';
-    let paymentMethod = document.getElementById('salePaymentMethod') ? document.getElementById('salePaymentMethod'].value : 'Cash';
-    
-    // Assuming you have your cart items total stored in a variable
-    let totalAmount = typeof cartTotal !== 'undefined' ? cartTotal : 0; 
 
-    if (totalAmount <= 0) {
-        return alert("Your cart is empty or total is zero!");
-    }
-
-    // 2. Create the sale object
-    let newSale = {
-        id: Date.now(),
-        date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
-        customer: customerName,
-        paymentMethod: paymentMethod, // 'Cash' or 'Transfer'
-        amount: totalAmount
-    };
-
-    // 3. Push into your global database object (matching your 'db.sales' structure seen in GitHub)
-    if (typeof db !== 'undefined' && db.sales) {
-        db.sales.push(newSale);
-        saveDb(); // Saves to localStorage and updates render
-    } else {
-        // Fallback if db object isn't global
-        let fallbackSales = JSON.parse(localStorage.getItem('store_sales') || '[]');
-        fallbackSales.push(newSale);
-        localStorage.setItem('store_sales', JSON.stringify(fallbackSales));
-    }
-
-    alert("Sale successfully recorded as " + paymentMethod + "!");
-        }
-    
-    // --- RENDERING FUNCTIONS & CHARTS ---
+    // --- RENDERING FUNCTIONS ---
     function renderAll() {
       renderDashboard();
       renderStock();
@@ -1531,7 +1310,6 @@ function recordNewSale() {
       document.getElementById('dash-net').innerText = `₦${netProfit.toLocaleString()}`;
 
       searchDashboardGoods();
-      renderCharts(filteredSales);
 
       const lowStockList = document.getElementById('low-stock-list');
       const lowStockWithIndex = db.stock.map((item, originalIndex) => ({ ...item, originalIndex })).filter(s => s.qty <= 10);
@@ -1564,68 +1342,6 @@ function recordNewSale() {
         }
         lowStockList.innerHTML = html;
       }
-    }
-
-    function renderCharts(salesSubset) {
-      // 1. Weekly Trend Chart Data
-      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const revenueByDay = [0, 0, 0, 0, 0, 0, 0];
-      const profitByDay = [0, 0, 0, 0, 0, 0, 0];
-
-      salesSubset.forEach(s => {
-        if (s.date) {
-          const d = new Date(s.date);
-          const dayIdx = d.getDay();
-          if (!isNaN(dayIdx)) {
-            const rev = s.sell_price * s.qty;
-            const prof = (s.sell_price - s.cost_price) * s.qty;
-            revenueByDay[dayIdx] += rev;
-            profitByDay[dayIdx] += prof;
-          }
-        }
-      });
-
-      const ctxWeekly = document.getElementById('weeklyTrendChart').getContext('2d');
-      if (weeklyChartInstance) weeklyChartInstance.destroy();
-
-      weeklyChartInstance = new Chart(ctxWeekly, {
-        type: 'line',
-        data: {
-          labels: days,
-          datasets: [
-            { label: 'Revenue (₦)', data: revenueByDay, borderColor: '#198754', backgroundColor: 'rgba(25,135,84,0.1)', tension: 0.2, fill: true },
-            { label: 'Net Profit (₦)', data: profitByDay, borderColor: '#0dcaf0', backgroundColor: 'rgba(13,202,240,0.1)', tension: 0.2, fill: true }
-          ]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-      });
-
-      // 2. Top Categories Chart Data
-      const categoryTotals = {};
-      salesSubset.forEach(s => {
-        const stockItem = db.stock.find(st => st.model.toLowerCase() === s.model.toLowerCase());
-        const cat = stockItem ? stockItem.category : 'General';
-        categoryTotals[cat] = (categoryTotals[cat] || 0) + (s.sell_price * s.qty);
-      });
-
-      const catLabels = Object.keys(categoryTotals);
-      const catData = Object.values(categoryTotals);
-
-      const ctxCats = document.getElementById('topCategoriesChart').getContext('2d');
-      if (topCatsChartInstance) topCatsChartInstance.destroy();
-
-      topCatsChartInstance = new Chart(ctxCats, {
-        type: 'bar',
-        data: {
-          labels: catLabels.length > 0 ? catLabels : ['No Sales'],
-          datasets: [{
-            label: 'Sales Revenue by Category (₦)',
-            data: catData.length > 0 ? catData : [0],
-            backgroundColor: ['#0d6efd', '#ffc107', '#198754', '#dc3545', '#6c757d']
-          }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-      });
     }
 
     function renderStock(filterQuery = "") {
@@ -1986,7 +1702,7 @@ function recordNewSale() {
             </div>
             <hr>
             <div class="center">
-              <p>Thank you for your business!</p>
+              <p>THANKS FOR YOUR PATRONAGE!!!</p>
             </div>
             <script>
               window.onload = function() { window.print(); window.close(); }
@@ -2545,7 +2261,6 @@ function recordNewSale() {
     // --- FORM ACTIONS WITH DATA VALIDATION ---
     document.getElementById('stock-form').addEventListener('submit', (e) => {
       e.preventDefault();
-      if (currentUserRole !== "Manager") return alert("Restricted to Managers.");
       const qty = parseInt(document.getElementById('stk-qty').value);
       const cost = parseInt(document.getElementById('stk-cost').value);
       const sell = parseInt(document.getElementById('stk-sell').value);
@@ -2570,7 +2285,6 @@ function recordNewSale() {
     let editModalInstance = null;
 
     function openEditModal(index) {
-      if (currentUserRole !== "Manager") return alert("Restricted to Managers.");
       const item = db.stock[index];
       document.getElementById('edit-stk-index').value = index;
       document.getElementById('edit-stk-model').value = item.model;
@@ -2587,7 +2301,6 @@ function recordNewSale() {
 
     document.getElementById('edit-stock-form').addEventListener('submit', (e) => {
       e.preventDefault();
-      if (currentUserRole !== "Manager") return alert("Restricted to Managers.");
       const index = parseInt(document.getElementById('edit-stk-index').value);
       const qty = parseInt(document.getElementById('edit-stk-qty').value);
       const cost = parseInt(document.getElementById('edit-stk-cost').value);
@@ -2751,7 +2464,6 @@ function recordNewSale() {
     });
 
     function deleteStock(index) {
-      if (currentUserRole !== "Manager") return alert("Restricted to Managers.");
       if (confirm("Delete this stock item?")) {
         db.stock.splice(index, 1);
         saveDB();
