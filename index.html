@@ -18,8 +18,10 @@
       .table { width: 100% !important; border-collapse: collapse !important; }
       .table th, .table td { border: 1px solid #000 !important; padding: 6px !important; }
       .print-title { display: block !important; text-align: center; margin-bottom: 20px; }
+      .cac-print-section { display: block !important; border: 2px solid #000; padding: 15px; margin-top: 20px; }
     }
     .print-title { display: none; }
+    .cac-print-section { display: none; }
   </style>
 </head>
 <body class="bg-light">
@@ -125,9 +127,17 @@
     </div>
 
     <div id="page-dashboard" class="page">
-      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <div class="print-title">
+        <h2>SKY MODERNIZE SAVE TECHNOLOGY LTD</h2>
+        <h4>Dashboard & Financial / CAC Audit Report</h4>
+        <hr>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 no-print">
         <h3>Dashboard Summary</h3>
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <button id="btn-toggle-dashboard-summary" class="btn btn-sm btn-outline-secondary" onclick="toggleDashboardSummary()">👁️ Hide Dashboard Summary</button>
+          <button class="btn btn-sm btn-outline-dark" onclick="printCACReport()">🖨️ Print CAC & Financial Report</button>
           <label class="fw-bold text-secondary mb-0">Period:</label>
           <select id="dash-date-filter" class="form-select form-select-sm" style="width: auto;" onchange="handleDashboardFilterChange()">
             <option value="today" selected>Today</option>
@@ -142,24 +152,114 @@
         </div>
       </div>
       
-      <div class="row g-3 mb-4">
-        <div class="col-md-2">
-          <div class="card text-center"><div class="card-body"><h6 class="text-muted" id="lbl-dash-sales">Sales Revenue</h6><h4 class="text-success" id="dash-sales">₦0</h4></div></div>
+      <!-- Dashboard Summary Container (Hideable) -->
+      <div id="dashboard-summary-container">
+        <div class="row g-3 mb-4">
+          <div class="col-md-2">
+            <div class="card text-center"><div class="card-body"><h6 class="text-muted" id="lbl-dash-sales">Sales Revenue</h6><h4 class="text-success" id="dash-sales">₦0</h4></div></div>
+          </div>
+          <div class="col-md-2">
+            <div class="card text-center"><div class="card-body"><h6 class="text-muted" id="lbl-dash-cost">Cost Price</h6><h4 class="text-warning" id="dash-cost">₦0</h4></div></div>
+          </div>
+          <div class="col-md-2">
+            <div class="card text-center"><div class="card-body"><h6 class="text-muted" id="lbl-dash-returns">Refund Returns</h6><h4 class="text-danger" id="dash-returns">₦0</h4></div></div>
+          </div>
+          <div class="col-md-2">
+            <div class="card text-center"><div class="card-body"><h6 class="text-muted">Gross Profit</h6><h4 class="text-info" id="dash-gross">₦0</h4></div></div>
+          </div>
+          <div class="col-md-2">
+            <div class="card text-center border-danger"><div class="card-body"><h6 class="text-muted">CAC (7.5%)</h6><h4 class="text-danger" id="dash-cac">₦0</h4></div></div>
+          </div>
+          <div class="col-md-2">
+            <div class="card text-center border-success"><div class="card-body"><h6 class="text-muted">Net Profit</h6><h4 class="text-success" id="dash-net">₦0</h4></div></div>
+          </div>
         </div>
-        <div class="col-md-2">
-          <div class="card text-center"><div class="card-body"><h6 class="text-muted" id="lbl-dash-cost">Cost Price</h6><h4 class="text-warning" id="dash-cost">₦0</h4></div></div>
+      </div>
+
+      <!-- CAC Printable Printout Section -->
+      <div class="cac-print-section mb-4">
+        <h3 class="text-center">SKY MODERNIZE SAVE TECHNOLOGY LTD</h3>
+        <h5 class="text-center text-muted">Official CAC (7.5%) & Net Profit Financial Audit Printout</h5>
+        <p class="text-center"><b>Period:</b> <span id="printout-period-label">Today</span></p>
+        <hr>
+        <table class="table table-bordered">
+          <tr><td><b>Total Sales Revenue:</b></td><td id="print-val-sales">₦0</td></tr>
+          <tr><td><b>Total Cost Price:</b></td><td id="print-val-cost">₦0</td></tr>
+          <tr><td><b>Total Customer Refunds:</b></td><td id="print-val-returns">₦0</td></tr>
+          <tr><td><b>Gross Profit:</b></td><td id="print-val-gross">₦0</td></tr>
+          <tr class="table-danger"><td><b>CAC Tax Deduction (7.5%):</b></td><td id="print-val-cac">₦0</td></tr>
+          <tr class="table-success"><td><b>Final Net Profit:</b></td><td id="print-val-net">₦0</td></tr>
+        </table>
+        <div class="row mt-4">
+          <div class="col-6"><p>Authorized Signature: ______________________</p></div>
+          <div class="col-6 text-end"><p>Date: ______________________</p></div>
         </div>
-        <div class="col-md-2">
-          <div class="card text-center"><div class="card-body"><h6 class="text-muted" id="lbl-dash-returns">Refund Returns</h6><h4 class="text-danger" id="dash-returns">₦0</h4></div></div>
+      </div>
+
+      <!-- Top 5 Model Alert (Low Stock) -->
+      <div class="card mb-4 border-danger shadow-sm">
+        <div class="card-header bg-danger text-white fw-bold d-flex justify-content-between align-items-center">
+          <span>🔥 Top 5 Critical Low Stock Models (<= 10 pcs)</span>
+          <span class="badge bg-light text-dark">Priority Restock</span>
         </div>
-        <div class="col-md-2">
-          <div class="card text-center"><div class="card-body"><h6 class="text-muted">Gross Profit</h6><h4 class="text-info" id="dash-gross">₦0</h4></div></div>
+        <div class="card-body" id="top-5-low-stock-container">
+          <p class="text-muted mb-0">No low stock items currently.</p>
         </div>
-        <div class="col-md-2">
-          <div class="card text-center border-danger"><div class="card-body"><h6 class="text-muted">CAC (7.5%)</h6><h4 class="text-danger" id="dash-cac">₦0</h4></div></div>
+      </div>
+
+      <!-- Cash Drawer Reconciliation Feature -->
+      <div class="card mb-4 border-success shadow-sm no-print">
+        <div class="card-header bg-success text-white fw-bold d-flex justify-content-between align-items-center">
+          <span>💵 Cash Drawer Reconciliation & Till Count</span>
+          <span class="small text-white-50">Match physical cash with recorded cash sales</span>
         </div>
-        <div class="col-md-2">
-          <div class="card text-center border-success"><div class="card-body"><h6 class="text-muted">Net Profit</h6><h4 class="text-success" id="dash-net">₦0</h4></div></div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <h6 class="fw-bold text-secondary mb-2">Denomination Breakdown</h6>
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered align-middle mb-0">
+                  <thead class="table-light">
+                    <tr><th>Denomination</th><th>Count</th><th>Subtotal</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>₦1,000 Note</td><td><input type="number" min="0" value="0" class="form-control form-control-sm cash-denom" data-val="1000" oninput="calculateCashDrawer()"></td><td class="fw-bold" id="sub-1000">₦0</td></tr>
+                    <tr><td>₦500 Note</td><td><input type="number" min="0" value="0" class="form-control form-control-sm cash-denom" data-val="500" oninput="calculateCashDrawer()"></td><td class="fw-bold" id="sub-500">₦0</td></tr>
+                    <tr><td>₦200 Note</td><td><input type="number" min="0" value="0" class="form-control form-control-sm cash-denom" data-val="200" oninput="calculateCashDrawer()"></td><td class="fw-bold" id="sub-200">₦0</td></tr>
+                    <tr><td>₦100 Note</td><td><input type="number" min="0" value="0" class="form-control form-control-sm cash-denom" data-val="100" oninput="calculateCashDrawer()"></td><td class="fw-bold" id="sub-100">₦0</td></tr>
+                    <tr><td>₦50 / Coins</td><td><input type="number" min="0" value="0" class="form-control form-control-sm cash-denom" data-val="50" oninput="calculateCashDrawer()"></td><td class="fw-bold" id="sub-50">₦0</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="col-md-6 d-flex flex-column justify-content-between">
+              <div>
+                <h6 class="fw-bold text-secondary mb-2">Reconciliation Summary</h6>
+                <ul class="list-group mb-3">
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>Expected Cash Sales (Period):</span>
+                    <strong id="drawer-expected-sales" class="text-primary">₦0</strong>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>Physical Cash Counted:</span>
+                    <strong id="drawer-total-counted" class="text-success">₦0</strong>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>Variance / Difference:</span>
+                    <strong id="drawer-variance" class="text-dark">₦0</strong>
+                  </li>
+                </ul>
+                <div class="mb-2">
+                  <label class="form-label small fw-bold">Reconciliation Notes / Attendant Name</label>
+                  <input id="drawer-notes" class="form-control form-control-sm" placeholder="e.g. Verified by Store Manager">
+                </div>
+              </div>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-success w-100" onclick="printCashReconciliation()">🖨️ Print Drawer Report</button>
+                <button class="btn btn-sm btn-outline-secondary w-100" onclick="resetCashDrawer()">Clear Drawer Form</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -779,6 +879,7 @@
     let isLoggedIn = false;
     let isManagerUnlocked = false;
     let isStockTotalsVisible = true;
+    let isDashboardSummaryVisible = true;
     let salesCart = [];
 
     const DB_KEY = "sky_modernize_db";
@@ -983,6 +1084,116 @@
 
       saveDB();
       alert(`📋 ${addedCount} Purchase Requisitions successfully created in bulk! View them in the Purchase Requisition tab.`);
+    }
+
+    // --- DASHBOARD SUMMARY HIDE/UNHIDE ---
+    function toggleDashboardSummary() {
+      isDashboardSummaryVisible = !isDashboardSummaryVisible;
+      const container = document.getElementById('dashboard-summary-container');
+      const btn = document.getElementById('btn-toggle-dashboard-summary');
+
+      if (isDashboardSummaryVisible) {
+        container.style.display = 'block';
+        btn.innerHTML = "👁️ Hide Dashboard Summary";
+        btn.classList.replace('btn-secondary', 'btn-outline-secondary');
+      } else {
+        container.style.display = 'none';
+        btn.innerHTML = "👁️ Show Dashboard Summary";
+        btn.classList.replace('btn-outline-secondary', 'btn-secondary');
+      }
+    }
+
+    // --- CAC PRINTOUT FEATURE ---
+    function printCACReport() {
+      const { periodLabel } = getFilteredDashboardPeriod();
+      document.getElementById('printout-period-label').innerText = periodLabel;
+      
+      document.getElementById('print-val-sales').innerText = document.getElementById('dash-sales').innerText;
+      document.getElementById('print-val-cost').innerText = document.getElementById('dash-cost').innerText;
+      document.getElementById('print-val-returns').innerText = document.getElementById('dash-returns').innerText;
+      document.getElementById('print-val-gross').innerText = document.getElementById('dash-gross').innerText;
+      document.getElementById('print-val-cac').innerText = document.getElementById('dash-cac').innerText;
+      document.getElementById('print-val-net').innerText = document.getElementById('dash-net').innerText;
+
+      window.print();
+    }
+
+    // --- CASH DRAWER RECONCILIATION FEATURE ---
+    function calculateCashDrawer() {
+      const denomInputs = document.querySelectorAll('.cash-denom');
+      let totalCounted = 0;
+
+      denomInputs.forEach(input => {
+        const val = parseInt(input.getAttribute('data-val')) || 0;
+        const count = parseInt(input.value) || 0;
+        const subtotal = val * count;
+        document.getElementById(`sub-${val}`).innerText = `₦${subtotal.toLocaleString()}`;
+        totalCounted += subtotal;
+      });
+
+      document.getElementById('drawer-total-counted').innerText = `₦${totalCounted.toLocaleString()}`;
+
+      // Get current expected sales revenue for period
+      const salesText = document.getElementById('dash-sales').innerText.replace(/[₦,]/g, '');
+      const expectedSales = parseInt(salesText) || 0;
+      document.getElementById('drawer-expected-sales').innerText = `₦${expectedSales.toLocaleString()}`;
+
+      const variance = totalCounted - expectedSales;
+      const varianceEl = document.getElementById('drawer-variance');
+      varianceEl.innerText = `₦${variance.toLocaleString()}`;
+
+      if (variance === 0) {
+        varianceEl.className = "text-success fw-bold";
+      } else if (variance > 0) {
+        varianceEl.className = "text-primary fw-bold";
+      } else {
+        varianceEl.className = "text-danger fw-bold";
+      }
+    }
+
+    function resetCashDrawer() {
+      document.querySelectorAll('.cash-denom').forEach(input => input.value = 0);
+      document.getElementById('drawer-notes').value = '';
+      calculateCashDrawer();
+    }
+
+    function printCashReconciliation() {
+      const totalCounted = document.getElementById('drawer-total-counted').innerText;
+      const expectedSales = document.getElementById('drawer-expected-sales').innerText;
+      const variance = document.getElementById('drawer-variance').innerText;
+      const notes = document.getElementById('drawer-notes').value || 'None';
+
+      const printWin = window.open('', '_blank', 'width=500,height=600');
+      printWin.document.write(`
+        <html>
+          <head>
+            <title>Cash Drawer Reconciliation - SKY MODERNIZE</title>
+            <style>
+              body { font-family: monospace; padding: 20px; font-size: 13px; }
+              .center { text-align: center; }
+              hr { border-top: 1px dashed #000; }
+            </style>
+          </head>
+          <body>
+            <div class="center">
+              <h3>SKY MODERNIZE SAVE TECHNOLOGY LTD</h3>
+              <p>Cash Drawer Reconciliation Slip</p>
+              <p>${new Date().toISOString().split('T')[0]}</p>
+            </div>
+            <hr>
+            <p><b>Expected Sales:</b> ${expectedSales}</p>
+            <p><b>Physical Cash Counted:</b> ${totalCounted}</p>
+            <p><b>Variance / Difference:</b> ${variance}</p>
+            <p><b>Notes:</b> ${notes}</p>
+            <hr>
+            <p>Attendant Signature: ______________________</p>
+            <script>
+              window.onload = function() { window.print(); window.close(); }
+            <\/script>
+          </body>
+        </html>
+      `);
+      printWin.document.close();
     }
 
     // --- ROUTING & ACCESS CONTROL ---
@@ -1237,9 +1448,8 @@
       }
     }
 
-    function renderDashboard() {
+    function getFilteredDashboardPeriod() {
       const filterType = document.getElementById('dash-date-filter').value;
-      const badge = document.getElementById('dash-date-badge');
       const now = new Date();
       const todayStr = now.toISOString().split('T')[0];
 
@@ -1292,6 +1502,12 @@
         }
       }
 
+      return { filteredSales, filteredReturns, periodLabel };
+    }
+
+    function renderDashboard() {
+      const { filteredSales, filteredReturns, periodLabel } = getFilteredDashboardPeriod();
+      const badge = document.getElementById('dash-date-badge');
       if (badge) badge.innerText = periodLabel;
 
       let totalSales = filteredSales.reduce((sum, s) => sum + (s.sell_price * s.qty), 0);
@@ -1309,7 +1525,36 @@
       document.getElementById('dash-cac').innerText = `₦${cacFee.toLocaleString()}`;
       document.getElementById('dash-net').innerText = `₦${netProfit.toLocaleString()}`;
 
+      calculateCashDrawer();
       searchDashboardGoods();
+
+      // Top 5 Model Alert (Low Stock)
+      const top5Container = document.getElementById('top-5-low-stock-container');
+      const lowStockItems = db.stock.map((item, originalIndex) => ({ ...item, originalIndex })).filter(s => s.qty <= 10).sort((a, b) => a.qty - b.qty).slice(0, 5);
+
+      if (lowStockItems.length === 0) {
+        top5Container.innerHTML = '<p class="text-muted mb-0">All stock levels healthy! No critical low stock items.</p>';
+      } else {
+        top5Container.innerHTML = `
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered table-striped mb-0">
+              <thead class="table-danger">
+                <tr><th>Model</th><th>Quality / Sub-Cat</th><th>Supplier</th><th>Remaining Stock</th></tr>
+              </thead>
+              <tbody>
+                ${lowStockItems.map(s => `
+                  <tr>
+                    <td><b>${s.model}</b></td>
+                    <td><span class="badge bg-secondary">${s.subcat || 'Standard'}</span></td>
+                    <td>${s.supplier || '-'}</td>
+                    <td><span class="badge bg-danger">${s.qty} pcs left</span></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
 
       const lowStockList = document.getElementById('low-stock-list');
       const lowStockWithIndex = db.stock.map((item, originalIndex) => ({ ...item, originalIndex })).filter(s => s.qty <= 10);
