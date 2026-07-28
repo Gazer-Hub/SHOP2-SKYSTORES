@@ -33,10 +33,10 @@
         <button class="btn btn-sm btn-outline-light" onclick="navigateTo('dashboard')">Dashboard</button>
         <button class="btn btn-sm btn-outline-light" onclick="navigateTo('stock')">Stock 🔒</button>
         <button class="btn btn-sm btn-outline-light" onclick="navigateTo('sales')">Sales</button>
+        <button class="btn btn-sm btn-outline-light" onclick="navigateTo('cash-drawer')">Cash Drawer 💵</button>
         <button class="btn btn-sm btn-outline-light" onclick="navigateTo('returns')">Customer Returns</button>
         <button class="btn btn-sm btn-outline-warning" onclick="navigateTo('supplier-returns')">Supplier Returns 📦</button>
         <button class="btn btn-sm btn-outline-info" onclick="navigateTo('purchase-requisition')">Purchase Requisition 📋</button>
-        <button class="btn btn-sm btn-outline-success" onclick="navigateTo('cash-drawer')">💵 Cash Drawer 🗄️</button>
         <button class="btn btn-sm btn-outline-light" onclick="navigateTo('change-password')">Password 🔑</button>
         <button class="btn btn-sm btn-danger ms-2" onclick="logout()">Logout</button>
       </div>
@@ -138,13 +138,14 @@
         <h3>Dashboard Summary</h3>
         <div class="d-flex align-items-center gap-2 flex-wrap">
           <button id="btn-toggle-dashboard-summary" class="btn btn-sm btn-outline-secondary" onclick="toggleDashboardSummary()">👁️ Hide Dashboard Summary</button>
-          <button class="btn btn-sm btn-outline-dark" onclick="printCACReport()">🖨️ Print CAC & Financial Report</button>
+          <button class="btn btn-sm btn-outline-dark" onclick="printCACReport()">🖨️ Print CAC Report Only</button>
           <label class="fw-bold text-secondary mb-0">Period:</label>
           <select id="dash-date-filter" class="form-select form-select-sm" style="width: auto;" onchange="handleDashboardFilterChange()">
             <option value="today" selected>Today</option>
             <option value="yesterday">Yesterday</option>
             <option value="this-week">This Week</option>
             <option value="this-month">This Month</option>
+            <option value="this-year">This Year (Yearly)</option>
             <option value="all-time">All Time</option>
             <option value="custom">Custom Specific Date...</option>
           </select>
@@ -177,10 +178,10 @@
         </div>
       </div>
 
-      <!-- CAC Printable Printout Section -->
+      <!-- CAC Printable Printout Section (Prints ONLY CAC) -->
       <div class="cac-print-section mb-4">
         <h3 class="text-center">SKY MODERNIZE SAVE TECHNOLOGY LTD</h3>
-        <h5 class="text-center text-muted">Official CAC (7.5%) & Net Profit Financial Audit Printout</h5>
+        <h5 class="text-center text-muted">Official CAC (7.5%) Audit Printout</h5>
         <p class="text-center"><b>Period:</b> <span id="printout-period-label">Today</span></p>
         <hr>
         <table class="table table-bordered">
@@ -198,7 +199,7 @@
       </div>
 
       <!-- Top 5 Model Alert (Low Stock) -->
-            <div class="card mb-4 border-danger shadow-sm">
+      <div class="card mb-4 border-danger shadow-sm">
         <div class="card-header bg-danger text-white fw-bold d-flex justify-content-between align-items-center">
           <span>🔥 Top 5 Critical Low Stock Models (<= 10 pcs)</span>
           <span class="badge bg-light text-dark">Priority Restock</span>
@@ -206,7 +207,9 @@
         <div class="card-body" id="top-5-low-stock-container">
           <p class="text-muted mb-0">No low stock items currently.</p>
         </div>
-      </div> <div class="card mb-4 border-info shadow-sm">
+      </div>
+
+      <div class="card mb-4 border-info shadow-sm">
         <div class="card-header bg-info text-white fw-bold d-flex justify-content-between align-items-center">
           <span>🔍 Quick Search Available Goods</span>
           <span class="small text-white-50">Instant lookup for price, quality & available stock</span>
@@ -242,7 +245,69 @@
         </div>
         <div class="card-body" id="low-stock-list"></div>
       </div>
+    </div>
 
+    <!-- SEPARATE CASH DRAWER INTERFACE PAGE -->
+    <div id="page-cash-drawer" class="page">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h3>💵 Cash Drawer Reconciliation & Till Count</h3>
+        <span class="text-muted small">Match physical cash with recorded cash sales</span>
+      </div>
+
+      <div class="card mb-4 border-success shadow-sm">
+        <div class="card-header bg-success text-white fw-bold d-flex justify-content-between align-items-center">
+          <span>Till Count & Denomination Breakdown</span>
+          <button class="btn btn-sm btn-outline-light" onclick="resetCashDrawer()">Clear Drawer Form</button>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <h6 class="fw-bold text-secondary mb-2">Denominations</h6>
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered align-middle mb-0">
+                  <thead class="table-light">
+                    <tr><th>Denomination</th><th>Count</th><th>Subtotal</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>₦1,000 Note</td><td><input type="number" min="0" value="0" class="form-control form-control-sm cash-denom" data-val="1000" oninput="calculateCashDrawer()"></td><td class="fw-bold" id="sub-1000">₦0</td></tr>
+                    <tr><td>₦500 Note</td><td><input type="number" min="0" value="0" class="form-control form-control-sm cash-denom" data-val="500" oninput="calculateCashDrawer()"></td><td class="fw-bold" id="sub-500">₦0</td></tr>
+                    <tr><td>₦200 Note</td><td><input type="number" min="0" value="0" class="form-control form-control-sm cash-denom" data-val="200" oninput="calculateCashDrawer()"></td><td class="fw-bold" id="sub-200">₦0</td></tr>
+                    <tr><td>₦100 Note</td><td><input type="number" min="0" value="0" class="form-control form-control-sm cash-denom" data-val="100" oninput="calculateCashDrawer()"></td><td class="fw-bold" id="sub-100">₦0</td></tr>
+                    <tr><td>₦50 / Coins</td><td><input type="number" min="0" value="0" class="form-control form-control-sm cash-denom" data-val="50" oninput="calculateCashDrawer()"></td><td class="fw-bold" id="sub-50">₦0</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="col-md-6 d-flex flex-column justify-content-between">
+              <div>
+                <h6 class="fw-bold text-secondary mb-2">Reconciliation Summary</h6>
+                <ul class="list-group mb-3">
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>Expected Cash Sales (Today):</span>
+                    <strong id="drawer-expected-sales" class="text-primary">₦0</strong>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>Physical Cash Counted:</span>
+                    <strong id="drawer-total-counted" class="text-success">₦0</strong>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>Variance / Difference:</span>
+                    <strong id="drawer-variance" class="text-dark">₦0</strong>
+                  </li>
+                </ul>
+                <div class="mb-2">
+                  <label class="form-label small fw-bold">Reconciliation Notes / Attendant Name</label>
+                  <input id="drawer-notes" class="form-control form-control-sm" placeholder="e.g. Verified by Store Manager">
+                </div>
+              </div>
+              <div class="d-flex gap-2">
+                <button class="btn btn-success w-100 fw-bold" onclick="printCashReconciliation()">🖨️ Print Drawer Reconciliation Report</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div id="page-stock" class="page">
       <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
@@ -805,67 +870,7 @@
       </div>
     </div>
   </div>
-<div id="page-cash-drawer" class="page">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>💵 Cash Drawer Reconciliation & Till Count</h3>
-    <button class="btn btn-sm btn-secondary" onclick="navigateTo('dashboard')">Back to Dashboard</button>
-  </div>
-  
-  <div class="card mb-4 border-success shadow-sm">
-    <div class="card-header bg-success text-white fw-bold d-flex justify-content-between align-items-center">
-      <span>Till Count & Verification</span>
-      <span class="small text-white-50">Match physical cash with recorded cash sales</span>
-    </div>
-    <div class="card-body">
-      <!-- (Keep the inner cash drawer row, denomination breakdown, and reconciliation summary HTML here) -->
-   <!-- Cash Drawer Reconciliation Feature -->
-          <div class="row g-3">
-            <div class="col-md-6">
-              <h6 class="fw-bold text-secondary mb-2">Denomination Breakdown</h6>
-              <div class="table-responsive">
-                <table class="table table-sm table-bordered align-middle mb-0">
-                  <thead class="table-light">
-                    <tr><th>Denomination</th><th>Count</th><th>Subtotal</th></tr>
-                  </thead>
-                  <tbody>
-                    <tr><td>₦1,000 Note</td><td><input type="number" min="0" value="0" class="form-control form-control-sm cash-denom" data-val="1000" oninput="calculateCashDrawer()"></td><td class="fw-bold" id="sub-1000">₦0</td></tr>
-                    <tr><td>₦500 Note</td><td><input type="number" min="0" value="0" class="form-control form-control-sm cash-denom" data-val="500" oninput="calculateCashDrawer()"></td><td class="fw-bold" id="sub-500">₦0</td></tr>
-                    <tr><td>₦200 Note</td><td><input type="number" min="0" value="0" class="form-control form-control-sm cash-denom" data-val="200" oninput="calculateCashDrawer()"></td><td class="fw-bold" id="sub-200">₦0</td></tr>
-                    <tr><td>₦100 Note</td><td><input type="number" min="0" value="0" class="form-control form-control-sm cash-denom" data-val="100" oninput="calculateCashDrawer()"></td><td class="fw-bold" id="sub-100">₦0</td></tr>
-                  </tbody>
-                   </table>
-              </div>
-            </div>
-            <div class="col-md-6 d-flex flex-column justify-content-between">
-              <div>
-                <h6 class="fw-bold text-secondary mb-2">Reconciliation Summary</h6>
-                <ul class="list-group mb-3">
-                  <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span>Expected Cash Sales (Period):</span>
-                    <strong id="drawer-expected-sales" class="text-primary">₦0</strong>
-                  </li>
-                  <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span>Physical Cash Counted:</span>
-                    <strong id="drawer-total-counted" class="text-success">₦0</strong>
-                  </li>
-                  <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span>Variance / Difference:</span>
-                    <strong id="drawer-variance" class="text-dark">₦0</strong>
-                  </li>
-                </ul>
-                <div class="mb-2">
-                  <label class="form-label small fw-bold">Reconciliation Notes / Attendant Name</label>
-                  <input id="drawer-notes" class="form-control form-control-sm" placeholder="e.g. Verified by Store Manager">
-                </div>
-                  </div>
-              <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-success w-100" onclick="printCashReconciliation()">🖨️ Print Drawer Report</button>
-                <button class="btn btn-sm btn-outline-secondary w-100" onclick="resetCashDrawer()">Clear Drawer Form</button>
-              </div>
-             </div>                    
-            </div>
-           </div>
- 
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // --- AUTHENTICATION ---
@@ -1106,12 +1111,17 @@
       }
     }
 
-    // --- CAC PRINTOUT FEATURE ---
+    // --- CAC PRINTOUT FEATURE (PRINTS ONLY CAC REPORT) ---
     function printCACReport() {
       const { periodLabel } = getFilteredDashboardPeriod();
       document.getElementById('printout-period-label').innerText = periodLabel;
       
+      document.getElementById('print-val-sales').innerText = document.getElementById('dash-sales').innerText;
+      document.getElementById('print-val-cost').innerText = document.getElementById('dash-cost').innerText;
+      document.getElementById('print-val-returns').innerText = document.getElementById('dash-returns').innerText;
+      document.getElementById('print-val-gross').innerText = document.getElementById('dash-gross').innerText;
       document.getElementById('print-val-cac').innerText = document.getElementById('dash-cac').innerText;
+      document.getElementById('print-val-net').innerText = document.getElementById('dash-net').innerText;
 
       window.print();
     }
@@ -1125,33 +1135,40 @@
         const val = parseInt(input.getAttribute('data-val')) || 0;
         const count = parseInt(input.value) || 0;
         const subtotal = val * count;
-        document.getElementById(`sub-${val}`).innerText = `₦${subtotal.toLocaleString()}`;
+        const subEl = document.getElementById(`sub-${val}`);
+        if (subEl) subEl.innerText = `₦${subtotal.toLocaleString()}`;
         totalCounted += subtotal;
       });
 
-      document.getElementById('drawer-total-counted').innerText = `₦${totalCounted.toLocaleString()}`;
+      const totalCountedEl = document.getElementById('drawer-total-counted');
+      if (totalCountedEl) totalCountedEl.innerText = `₦${totalCounted.toLocaleString()}`;
 
-      // Get current expected sales revenue for period
-      const salesText = document.getElementById('dash-sales').innerText.replace(/[₦,]/g, '');
-      const expectedSales = parseInt(salesText) || 0;
-      document.getElementById('drawer-expected-sales').innerText = `₦${expectedSales.toLocaleString()}`;
+      // Get current expected sales revenue for period (Today's sales by default for drawer)
+      const todayStr = new Date().toISOString().split('T')[0];
+      const todaySales = db.sales.filter(s => s.date === todayStr);
+      const expectedSales = todaySales.reduce((sum, s) => sum + (s.sell_price * s.qty), 0);
+      
+      const expectedSalesEl = document.getElementById('drawer-expected-sales');
+      if (expectedSalesEl) expectedSalesEl.innerText = `₦${expectedSales.toLocaleString()}`;
 
       const variance = totalCounted - expectedSales;
       const varianceEl = document.getElementById('drawer-variance');
-      varianceEl.innerText = `₦${variance.toLocaleString()}`;
-
-      if (variance === 0) {
-        varianceEl.className = "text-success fw-bold";
-      } else if (variance > 0) {
-        varianceEl.className = "text-primary fw-bold";
-      } else {
-        varianceEl.className = "text-danger fw-bold";
+      if (varianceEl) {
+        varianceEl.innerText = `₦${variance.toLocaleString()}`;
+        if (variance === 0) {
+          varianceEl.className = "text-success fw-bold";
+        } else if (variance > 0) {
+          varianceEl.className = "text-primary fw-bold";
+        } else {
+          varianceEl.className = "text-danger fw-bold";
+        }
       }
     }
 
     function resetCashDrawer() {
       document.querySelectorAll('.cash-denom').forEach(input => input.value = 0);
-      document.getElementById('drawer-notes').value = '';
+      const notesEl = document.getElementById('drawer-notes');
+      if (notesEl) notesEl.value = '';
       calculateCashDrawer();
     }
 
@@ -1481,6 +1498,12 @@
         periodLabel = `This Month (${currentYearMonth})`;
         filteredSales = db.sales.filter(s => s.date && s.date.startsWith(currentYearMonth));
         filteredReturns = db.returns.filter(r => r.date && r.date.startsWith(currentYearMonth));
+
+      } else if (filterType === 'this-year') {
+        const currentYear = now.getFullYear().toString();
+        periodLabel = `Yearly Printout (${currentYear})`;
+        filteredSales = db.sales.filter(s => s.date && s.date.startsWith(currentYear));
+        filteredReturns = db.returns.filter(r => r.date && r.date.startsWith(currentYear));
 
       } else if (filterType === 'all-time') {
         periodLabel = "All Time History";
@@ -2565,157 +2588,114 @@
 
       saveDB();
       if (editModalInstance) editModalInstance.hide();
-    });
-
-    document.getElementById('sales-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const customer = document.getElementById('sale-customer').value.trim();
-
-      if (!customer) return alert("Please enter Customer Name!");
-
-      if (salesCart.length === 0) {
-        const modelName = document.getElementById('sale-item').value.trim();
-        const quality = document.getElementById('sale-quality').value;
-        const sellPrice = parseInt(document.getElementById('sale-price').value);
-        const qty = parseInt(document.getElementById('sale-qty').value);
-
-        if (!modelName) return alert("❌ Error: Add items to cart or select a single item first!");
-        if (isNaN(qty) || qty <= 0) return alert("❌ Validation Error: Sale Quantity must be at least 1!");
-
-        const item = db.stock.find(s => 
-          s.model.toLowerCase() === modelName.toLowerCase() &&
-          (s.subcat || 'Standard').toLowerCase() === (quality || 'Standard').toLowerCase()
-        ) || db.stock.find(s => s.model.toLowerCase() === modelName.toLowerCase());
-
-        if (!item) return alert("❌ Error: Model not found in stock inventory!");
-        if (item.qty < qty) return alert(`❌ Error: Insufficient stock available! (${item.qty} pcs in stock)`);
-
-        item.qty -= qty;
-        db.sales.push({
-          model: item.model,
-          quality: quality || item.subcat || 'Standard',
-          qty: qty,
-          cost_price: item.cost_price,
-          sell_price: sellPrice || item.sell_price,
-          customer: customer,
-          date: new Date().toISOString().split('T')[0]
-        });
-      } else {
-        salesCart.forEach(cItem => {
-          const item = db.stock[cItem.stockIndex];
-          if (item) {
-            item.qty -= cItem.qty;
-            db.sales.push({
-              model: item.model,
-              quality: cItem.quality,
-              qty: cItem.qty,
-              cost_price: cItem.cost_price,
-              sell_price: cItem.sell_price,
-              customer: customer,
-              date: new Date().toISOString().split('T')[0]
-            });
-          }
-        });
-      }
-
-      e.target.reset();
-      salesCart = [];
-      renderSalesCart();
-      document.getElementById('sale-quality').innerHTML = '<option value="">-- Select Quality --</option>';
-      saveDB();
-      alert("✅ Sale completed successfully!");
-    });
-
-    document.getElementById('returns-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const saleIdx = parseInt(document.getElementById('return-sale-idx').value);
-      const qty = parseInt(document.getElementById('return-qty').value);
-      const reason = document.getElementById('return-reason').value;
-      const isExchanged = document.getElementById('return-is-exchanged').checked;
-
-      if (isNaN(qty) || qty <= 0) return alert("❌ Validation Error: Return quantity must be at least 1!");
-
-      const sale = db.sales[saleIdx];
-      if (isNaN(saleIdx) || !sale || qty > sale.qty) {
-        alert("❌ Error: Invalid return quantity or no sold item selected!");
-        return;
-      }
-
-      const item = db.stock.find(s => sale.model.toLowerCase() === s.model.toLowerCase());
-
-      if (isExchanged) {
-        if (item && item.qty < qty) {
-          alert("❌ Error: Insufficient stock available to issue a replacement unit!");
-          return;
-        }
-      } else {
-        if (item) item.qty += qty;
-      }
-
-      db.returns.push({
-        model: sale.model,
-        qty: qty,
-        cost_price: sale.cost_price,
-        sell_price: sale.sell_price,
-        customer: sale.customer,
-        reason: reason,
-        isExchanged: isExchanged,
-        date: new Date().toISOString().split('T')[0]
-      });
-
-      e.target.reset();
-      clearReturnSaleSearch();
-      saveDB();
-    });
-
-    document.getElementById('supplier-returns-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const rawInput = document.getElementById('sup-return-item').value.trim();
-      const modelName = rawInput.split(' [')[0].trim();
-      const supplier = document.getElementById('sup-return-supplier').value;
-      const qty = parseInt(document.getElementById('sup-return-qty').value);
-      const status = document.getElementById('sup-return-status').value;
-      const reason = document.getElementById('sup-return-reason').value;
-
-      if (isNaN(qty) || qty <= 0) return alert("❌ Validation Error: Quantity must be at least 1!");
-
-      const item = db.stock.find(s => s.model.toLowerCase() === modelName.toLowerCase());
-      if (!item) {
-        alert("❌ Error: Model not found in stock inventory!");
-        return;
-      }
-
-      if (status !== 'Replaced / Received') {
-        if (item.qty < qty) {
-          alert("❌ Error: Insufficient stock quantity available to return to supplier!");
-          return;
-        }
-        item.qty -= qty;
-      }
-
-      db.supplierReturns.push({
-        model: item.subcat ? `${item.model} [${item.subcat}]` : item.model,
-        supplier: supplier,
-        qty: qty,
-        reason: reason,
-        status: status,
-        date: new Date().toISOString().split('T')[0]
-      });
-
-      e.target.reset();
-      saveDB();
+      alert("✅ Stock details updated successfully!");
     });
 
     function deleteStock(index) {
-      if (confirm("Delete this stock item?")) {
+      if (confirm("Are you sure you want to delete this stock item?")) {
         db.stock.splice(index, 1);
         saveDB();
       }
     }
 
-    // Initial Load
+    document.getElementById('sales-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (salesCart.length === 0) return alert("❌ Cart is empty! Add at least one item to complete a sale.");
+      
+      const customer = document.getElementById('sale-customer').value.trim();
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      salesCart.forEach(cartItem => {
+        const stockItem = db.stock[cartItem.stockIndex];
+        if (stockItem) {
+          stockItem.qty -= cartItem.qty;
+        }
+
+        db.sales.push({
+          date: todayStr,
+          model: cartItem.model,
+          quality: cartItem.quality,
+          customer: customer,
+          qty: cartItem.qty,
+          cost_price: cartItem.cost_price,
+          sell_price: cartItem.sell_price
+        });
+      });
+
+      salesCart = [];
+      renderSalesCart();
+      document.getElementById('sales-form').reset();
+      saveDB();
+      alert("✅ Multi-item sale successfully completed and recorded!");
+    });
+
+    document.getElementById('returns-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const saleIdx = document.getElementById('return-sale-idx').value;
+      const qty = parseInt(document.getElementById('return-qty').value);
+      const reason = document.getElementById('return-reason').value.trim();
+      const isExchanged = document.getElementById('return-is-exchanged').checked;
+
+      if (saleIdx === "") return alert("Please select a sale record to return!");
+      
+      const sale = db.sales[parseInt(saleIdx)];
+      if (!sale) return alert("Selected sale record not found!");
+      if (qty > sale.qty) return alert(`Cannot return ${qty} pcs. Only ${sale.qty} pcs were sold in this record!`);
+
+      if (isExchanged) {
+        const item = db.stock.find(s => s.model.toLowerCase() === sale.model.toLowerCase());
+        if (!item || item.qty < qty) {
+          return alert("Insufficient stock available in inventory to issue replacement exchange!");
+        }
+        item.qty -= qty;
+      }
+
+      db.returns.push({
+        date: new Date().toISOString().split('T')[0],
+        model: sale.model,
+        customer: sale.customer,
+        qty: qty,
+        reason: reason,
+        cost_price: sale.cost_price,
+        sell_price: sale.sell_price,
+        isExchanged: isExchanged
+      });
+
+      clearCustomerReturnForm();
+      saveDB();
+      alert("✅ Customer return successfully processed and recorded!");
+    });
+
+    document.getElementById('supplier-returns-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const modelName = document.getElementById('sup-return-item').value.trim();
+      const supplier = document.getElementById('sup-return-supplier').value.trim();
+      const qty = parseInt(document.getElementById('sup-return-qty').value);
+      const status = document.getElementById('sup-return-status').value;
+      const reason = document.getElementById('sup-return-reason').value.trim();
+
+      const item = db.stock.find(s => s.model.toLowerCase() === modelName.toLowerCase());
+      if (!item) return alert("Model not found in stock inventory!");
+      if (item.qty < qty) return alert(`Insufficient stock! Only ${item.qty} pcs available to return to supplier.`);
+
+      item.qty -= qty;
+
+      db.supplierReturns.push({
+        date: new Date().toISOString().split('T')[0],
+        model: `${modelName}${item.subcat ? ' [' + item.subcat + ']' : ''}`,
+        supplier: supplier,
+        qty: qty,
+        reason: reason,
+        status: status
+      });
+
+      clearSupplierReturnForm();
+      saveDB();
+      alert("✅ Supplier return successfully recorded and stock deducted!");
+    });
+
+    // Initial load
     renderAll();
-    navigateTo('login');
   </script>
 </body>
 </html>
