@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Payments — Admin</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f2f2f2; }
+    .badge { padding: 4px 8px; border-radius: 4px; color: white; }
+    .success { background: green; } .failed { background: red; } .pending { background: orange; }
+  </style>
+</head>
+<body>
+  <h1>Payments</h1>
+  <div>
+    <label>Auto-refresh:
+      <select id="interval">
+        <option value="0">Off</option>
+        <option value="10000">10s</option>
+        <option value="30000">30s</option>
+        <option value="60000">1m</option>
+      </select>
+    </label>
+    <button id="refresh">Refresh now</button>
+  </div>
+  <table id="paymentsTable">
+    <thead>
+      <tr><th>ID</th><th>Amount</th><th>Currency</th><th>Status</th><th>Payer</th><th>Received At</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    async function fetchPayments() {
+      const res = await fetch('/.netlify/functions/get-payments?limit=200');
+      if (!res.ok) {
+        console.error('fetch error', res.status);
+        return;
+      }
+      const rows = await res.json();
+      const tbody = document.querySelector('#paymentsTable tbody');
+      tbody.innerHTML = '';
+      for (const r of rows) {
+        const tr = document.createElement('tr');
+        const statusClass = (r.status||'').toLowerCase();
+        const amount = (typeof r.amount === 'number') ? (r.amount/100).toFixed(2) : r.amount;
+        tr.innerHTML = `
+          <td>${r.id}</td>
+          <td>${amount}</td>
+          <td>${r.currency}</td>
+          <td><span class="badge ${statusClass}">${r.status}</span></td>
+          <td><pre style="margin:0">${escapeHtml(JSON.stringify(r.payer))}</pre></td>
+          <td>${new Date(r.created_at).toLocaleString()}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    document.getElementById('refresh').addEventListener('click', fetchPayments);
+
+    let timer = null;
+    document.getElementById('interval').addEventListener('change', (e) => {
+      if (timer) { clearInterval(timer); timer = null; }
+      const ms = Number(e.target.value);
+      if (ms > 0) timer = setInterval(fetchPayments, ms);
+    });
+
+    // initial load
+    fetchPayments();
+  </script>
+</body>
+</html>
