@@ -6,19 +6,9 @@
   <title>SKY MODERNIZE SAVE TECHNOLOGY LTD - Inventory</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <!-- Supabase CDN Client Library for Triple Saving Method -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     .page { display: none; }
     .page.active { display: block; }
-    
-    /* Real-time Moniepoint Toast Notification Popup Style */
-    #moniepoint-toast-container {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 9999;
-    }
     
     @media print {
       .no-print, nav, button, .card-header, form, .input-group, .modal, .sales-filter-container, .returns-filter-container, .sup-filter-container, .req-filter-container { display: none !important; }
@@ -36,18 +26,6 @@
 </head>
 <body class="bg-light">
 
-  <!-- Real-time Moniepoint Payment Notification Popup Container -->
-  <div id="moniepoint-toast-container">
-    <div id="moniepoint-toast" class="toast align-items-center text-white bg-success border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="d-flex">
-        <div class="toast-body fs-6">
-          <strong>💳 Moniepoint Alert:</strong> <span id="toast-message">New payment received!</span>
-        </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-      </div>
-    </div>
-  </div>
-
   <nav id="main-nav" class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 no-print" style="display: none;">
     <div class="container-fluid">
       <a class="navbar-brand fw-bold" href="#">SKY MODERNIZE SAVE TECHNOLOGY LTD</a>
@@ -56,12 +34,11 @@
         <button class="btn btn-sm btn-outline-light" onclick="navigateTo('stock')">Stock 🔒</button>
         <button class="btn btn-sm btn-outline-light" onclick="navigateTo('sales')">Sales</button>
         <button class="btn btn-sm btn-outline-light" onclick="navigateTo('cash-drawer')">Cash Drawer 💵</button>
-        <button class="btn btn-sm btn-outline-info" onclick="navigateTo('moniepoint')">Moniepoint Payments 💳</button>
         <button class="btn btn-sm btn-outline-light" onclick="navigateTo('returns')">Customer Returns</button>
         <button class="btn btn-sm btn-outline-warning" onclick="navigateTo('supplier-returns')">Supplier Returns 📦</button>
         <button class="btn btn-sm btn-outline-info" onclick="navigateTo('purchase-requisition')">Purchase Requisition 📋</button>
         <button class="btn btn-sm btn-outline-light" onclick="navigateTo('change-password')">Password 🔑</button>
-        <button class="btn btn-danger ms-2 btn-sm" onclick="logout()">Logout</button>
+        <button class="btn btn-sm btn-danger ms-2" onclick="logout()">Logout</button>
       </div>
     </div>
   </nav>
@@ -267,62 +244,6 @@
         </div>
         <div class="card-body" id="low-stock-list"></div>
       </div>
-    </div>
-
-    <!-- NEW: Dedicated Moniepoint Payment History Interface Tab -->
-    <div id="page-moniepoint" class="page">
-      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <h3>💳 Moniepoint Payment History & Webhook Logs</h3>
-        <div class="no-print d-flex align-items-center gap-2 flex-wrap">
-          <span class="badge bg-secondary">Webhook URL: sky-moniepoint-webhook.netlify.app</span>[cite: 1]
-          <button class="btn btn-outline-primary btn-sm" onclick="exportMoniepointToCSV()">📥 Export Moniepoint CSV</button>
-          <button class="btn btn-outline-success btn-sm" onclick="simulateMoniepointWebhookTest()">🧪 Test Webhook Pop-up</button>
-        </div>
-      </div>
-
-      <div class="row g-3 mb-4">
-        <div class="col-md-6">
-          <div class="card text-center border-success shadow-sm">
-            <div class="card-body py-2">
-              <h6 class="text-muted mb-1">Total Moniepoint Inflows</h6>
-              <h3 class="text-success fw-bold mb-0" id="moniepoint-total-amount">₦0</h3>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="card text-center border-primary shadow-sm">
-            <div class="card-body py-2">
-              <h6 class="text-muted mb-1">Total Successful Transactions</h6>
-              <h3 class="text-primary fw-bold mb-0" id="moniepoint-total-count">0</h3>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="d-flex justify-content-between align-items-center mb-3 no-print">
-        <h5 class="mb-0">Received Transfer Transactions</h5>
-        <div class="input-group" style="max-width: 400px;">
-          <input type="text" id="moniepoint-search-input" class="form-control form-control-sm" placeholder="Search sender, reference or amount..." onkeyup="searchMoniepointPayments()">
-          <button class="btn btn-sm btn-primary" type="button" onclick="searchMoniepointPayments()">🔍 Search</button>
-          <button class="btn btn-sm btn-outline-secondary" type="button" onclick="clearMoniepointSearch()">Clear</button>
-        </div>
-      </div>
-
-      <table class="table table-striped align-middle">
-        <thead class="table-dark">
-          <tr>
-            <th>Date & Time</th>
-            <th>Reference / Session ID</th>
-            <th>Sender Name</th>
-            <th>Account Number</th>
-            <th>Amount (₦)</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="moniepoint-table-body">
-          <tr><td colspan="6" class="text-center text-muted py-3">No Moniepoint payments recorded yet.</td></tr>
-        </tbody>
-      </table>
     </div>
 
     <div id="page-cash-drawer" class="page">
@@ -578,7 +499,7 @@
               <label class="form-label small fw-bold">Payment Method</label>
               <select id="sale-payment-method" class="form-select" required>
                 <option value="Cash">Cash 💵</option>
-                <option value="Transfer">Transfer 💳 (Moniepoint)</option>
+                <option value="Transfer">Transfer 💳</option>
               </select>
             </div>
             <div class="col-md-4 d-flex align-items-end">
@@ -917,15 +838,52 @@
     </div>
   </div>
 
- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    // --- TRIPLE SAVING METHOD CONFIGURATION (SUPABASE + LOCALSTORAGE) ---
-    const SUPABASE_URL = 'https://puktzlekeoojrlxrkziu.supabase.co'; // Your Supabase Project URL
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1a3R6bGVrZW9vanJseHJreml1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1NTI5MzAsImV4cCI6MjEwMDEyODkzMH0.uSH3tcofOW-LiBHraIb_eDi2hI3_ZUN1b9JjIJ42Z-Q'; // Your Supabase Anon/Public Key
-    const supabaseClient = (window.supabase && SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE') 
-      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) 
-      : null;
+  <div class="modal fade" id="editRequisitionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-info text-white">
+          <h5 class="modal-title">Edit Purchase Requisition</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="edit-requisition-form">
+          <div class="modal-body">
+            <input type="hidden" id="edit-req-index">
+            <div class="mb-2">
+              <label class="form-label">Item / Model Needed</label>
+              <input id="edit-req-item" class="form-control" required>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Category / Specs</label>
+              <input id="edit-req-cat" class="form-control" required>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Requested Qty</label>
+              <input id="edit-req-qty" type="number" min="1" class="form-control" required>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Estimated Unit Cost (₦)</label>
+              <input id="edit-req-cost" type="number" min="0" class="form-control">
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Preferred Supplier</label>
+              <input id="edit-req-supplier" class="form-control">
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Notes</label>
+              <input id="edit-req-notes" class="form-control">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-info text-white">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
     // --- AUTHENTICATION ---
     const AUTH_KEY = "sky_modernize_auth";
     let auth = JSON.parse(localStorage.getItem(AUTH_KEY)) || { username: "admin", password: "1234" };
@@ -949,73 +907,16 @@
       sales: [], 
       returns: [], 
       supplierReturns: [],
-      requisitions: [],
-      moniepointPayments: []
+      requisitions: []
     };
 
     if (!db.supplierReturns) db.supplierReturns = [];
     if (!db.requisitions) db.requisitions = [];
-    if (!db.moniepointPayments) db.moniepointPayments = [];
 
-    // --- REAL-TIME TOAST POPUP NOTIFICATION ---
-    function showMoniepointToast(message) {
-      document.getElementById('toast-message').innerText = message;
-      const toastElement = document.getElementById('moniepoint-toast');
-      const toast = new bootstrap.Toast(toastElement, { delay: 5000 });
-      toast.show();
-    }
-
-    // --- TRIPLE SAVING METHOD IMPLEMENTATION ---
-    async function saveDB() {
-      // 1. Save to local browser storage
+    function saveDB() {
       localStorage.setItem(DB_KEY, JSON.stringify(db));
-
-      // 2. Save concurrently to Supabase database (Cloud persistent storage)
-      if (supabaseClient) {
-        try {
-          const { error } = await supabaseClient
-            .from('inventory')
-            .upsert({ id: 1, payload: db, updated_at: new Date().toISOString() });
-          
-          if (error) {
-            console.error('Supabase sync error:', error.message);
-          }
-        } catch (err) {
-          console.error('Network error during Supabase triple saving sync:', err);
-        }
-      }
-
       renderAll();
     }
-
-    // Initial load sync check from Supabase on startup
-    async function initTripleSavingSync() {
-      if (supabaseClient) {
-        try {
-          const { data, error } = await supabaseClient
-            .from('inventory')
-            .select('payload')
-            .eq('id', 1)
-            .single();
-          
-          if (data && data.payload && !error) {
-            db = data.payload;
-            if (!db.supplierReturns) db.supplierReturns = [];
-            if (!db.requisitions) db.requisitions = [];
-            if (!db.moniepointPayments) db.moniepointPayments = [];
-            localStorage.setItem(DB_KEY, JSON.stringify(db));
-          }
-        } catch (e) {
-          console.log('Using local backup storage fallback.');
-        }
-      }
-      renderAll();
-    }
-
-    // --- AUTO-INITIALIZE ON PHONE & LAPTOP BOOT ---
-    window.addEventListener('DOMContentLoaded', () => {
-      initTripleSavingSync();
-    });
 
     // --- CSV EXPORT UTILITY ---
     function downloadCSV(csvContent, filename) {
@@ -1037,72 +938,6 @@
         csv += `"${s.model}","${s.category}","${s.subcat || ''}","${s.supplier || ''}",${s.qty},${s.cost_price},${s.sell_price}\n`;
       });
       downloadCSV(csv, `Stock_Inventory_${new Date().toISOString().split('T')[0]}.csv`);
-    }
-
-    function exportMoniepointToCSV() {
-      if (db.moniepointPayments.length === 0) return alert("No Moniepoint payment records available to export.");
-      let csv = "DateTime,Reference,SenderName,AccountNumber,Amount (NGN),Status\n";
-      db.moniepointPayments.forEach(p => {
-        csv += `"${p.datetime}","${p.reference}","${p.senderName}","${p.accountNumber}",${p.amount},"${p.status}"\n`;
-      });
-      downloadCSV(csv, `Moniepoint_Payments_${new Date().toISOString().split('T')[0]}.csv`);
-    }
-
-    function simulateMoniepointWebhookTest() {
-      // Test simulation simulating a webhook received from sky-moniepoint-webhook.netlify.app
-      const testPayment = {
-        datetime: new Date().toISOString().replace('T', ' ').substring(0, 19),
-        reference: "MP-TXN-" + Math.floor(100000 + Math.random() * 900000),
-        senderName: "TEST CUSTOMER",
-        accountNumber: "99" + Math.floor(10000000 + Math.random() * 90000000),
-        amount: 55000,
-        status: "SUCCESS"
-      };
-      db.moniepointPayments.push(testPayment);
-      saveDB();
-      showMoniepointToast(`Payment of ₦55,000 received from TEST CUSTOMER!`);
-    }
-
-    function searchMoniepointPayments() {
-      renderMoniepointPayments(document.getElementById('moniepoint-search-input').value.trim().toLowerCase());
-    }
-
-    function clearMoniepointSearch() {
-      document.getElementById('moniepoint-search-input').value = '';
-      renderMoniepointPayments();
-    }
-
-    function renderMoniepointPayments(filterQuery = "") {
-      const tbody = document.getElementById('moniepoint-table-body');
-      const payments = db.moniepointPayments || [];
-      
-      const totalAmount = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), document.getElementById('moniepoint-total-amount').innerText = `₦${totalAmount.toLocaleString()}` ? 0 : 0);
-      document.getElementById('moniepoint-total-amount').innerText = `₦${payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0).toLocaleString()}`;
-      document.getElementById('moniepoint-total-count').innerText = payments.length;
-
-      const filtered = payments.slice().reverse().filter(p => {
-        if (!filterQuery) return true;
-        const q = filterQuery.toLowerCase();
-        return (p.senderName && p.senderName.toLowerCase().includes(q)) ||
-               (p.reference && p.reference.toLowerCase().includes(q)) ||
-               (p.accountNumber && p.accountNumber.toLowerCase().includes(q)) ||
-               (p.amount && p.amount.toString().includes(q));
-      });
-
-      if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3">No matching Moniepoint payment records found</td></tr>`;
-      } else {
-        tbody.innerHTML = filtered.map(p => `
-          <tr>
-            <td>${p.datetime}</td>
-            <td><code>${p.reference}</code></td>
-            <td><b>${p.senderName}</b></td>
-            <td>${p.accountNumber}</td>
-            <td class="text-success fw-bold">₦${Number(p.amount).toLocaleString()}</td>
-            <td><span class="badge bg-success">${p.status}</span></td>
-          </tr>
-        `).join('');
-      }
     }
 
     function exportSalesToCSV() {
@@ -1278,6 +1113,7 @@
       const dynamicContentContainer = document.getElementById('cac-print-dynamic-content');
 
       if (filterType === 'this-week') {
+        // Weekly Report Breakdown Printout (Focusing on 7.5% CAC amounts)
         let totalSales = filteredSales.reduce((sum, s) => sum + (s.sell_price * s.qty), 0);
         let totalCost = filteredSales.reduce((sum, s) => sum + (s.cost_price * s.qty), 0);
         let totalReturns = filteredReturns.reduce((sum, r) => sum + (r.sell_price * r.qty), 0);
@@ -1297,6 +1133,7 @@
           </table>
         `;
       } else if (filterType === 'this-year') {
+        // Yearly Report Grouped Into Months Printout (Focusing on 7.5% CAC amounts)
         const monthlyGroups = {};
         for (let m = 1; m <= 12; m++) {
           const monthStr = m < 10 ? `0${m}` : `${m}`;
@@ -1361,6 +1198,7 @@
           </table>
         `;
       } else {
+        // Standard single period printout
         dynamicContentContainer.innerHTML = `
           <table class="table table-bordered">
             <tr><td><b>Total Sales Revenue:</b></td><td>${document.getElementById('dash-sales').innerText}</td></tr>
@@ -1653,7 +1491,6 @@
       renderReturns();
       renderSupplierReturns();
       renderRequisitions();
-      renderMoniepointPayments();
     }
 
     function handleDashboardFilterChange() {
@@ -1975,34 +1812,27 @@
       const tbody = document.getElementById('sales-cart-tbody');
       const totalDisplay = document.getElementById('sales-cart-total');
       const totalQtyDisplay = document.getElementById('sales-cart-total-qty');
-      
+
       if (salesCart.length === 0) {
         container.classList.add('d-none');
         checkBulkPriceEligibility();
         return;
       }
-      
+
       container.classList.remove('d-none');
       let grandTotal = 0;
       let totalQty = 0;
 
-      salesCart.forEach(item => { totalQty += Number(item.qty || 0); });
-      const allowPriceEdit = totalQty >= 5;
-
       tbody.innerHTML = salesCart.map((item, idx) => {
         const subtotal = item.sell_price * item.qty;
         grandTotal += subtotal;
-
-        const unitPriceDisplay = allowPriceEdit
-          ? `<input type="number" min="0" step="0.01" class="form-control form-control-sm cart-price-input" data-index="${idx}" value="${item.sell_price}" style="width: 100px;">`
-          : `₦${item.sell_price.toLocaleString()}`;
-
+        totalQty += item.qty;
         return `
           <tr>
             <td><b>${item.model}</b></td>
             <td><span class="badge bg-secondary">${item.quality}</span></td>
             <td>${item.qty}</td>
-            <td>${unitPriceDisplay}</td>
+            <td>₦${item.sell_price.toLocaleString()}</td>
             <td class="fw-bold text-success">₦${subtotal.toLocaleString()}</td>
             <td><button class="btn btn-xs btn-danger py-0 px-2" onclick="removeFromSalesCart(${idx})">✖</button></td>
           </tr>
@@ -2011,20 +1841,6 @@
 
       totalDisplay.innerText = `₦${grandTotal.toLocaleString()}`;
       totalQtyDisplay.innerText = `${totalQty} pcs`;
-
-      if (allowPriceEdit) {
-        document.querySelectorAll('.cart-price-input').forEach(input => {
-          input.addEventListener('change', (e) => {
-            const index = e.target.getAttribute('data-index');
-            const newPrice = parseFloat(e.target.value);
-            if (!isNaN(newPrice) && newPrice >= 0) {
-              salesCart[index].sell_price = newPrice;
-              renderSalesCart();
-            }
-          });
-        });
-      }
-
       checkBulkPriceEligibility();
     }
 
@@ -2523,8 +2339,9 @@
       } else if (filterType === 'custom') {
         const customDate = document.getElementById('sup-returns-custom-date').value;
         if (customDate) {
-          periodLabel = `Date / Month: ${customDate}`;
-          supReturnsData = db.supplierReturns.filter(r => r.date && r.date.includes(customDate));
+          const monthPrefix = customDate.substring(0, 7);
+          periodLabel = `Filtered Period (${customDate})`;
+          supReturnsData = db.supplierReturns.filter(r => r.date === customDate || r.date.startsWith(monthPrefix));
         } else {
           periodLabel = "Select Date...";
           supReturnsData = [];
@@ -2538,32 +2355,46 @@
       const { supReturnsData, periodLabel } = getFilteredSupplierReturnsData();
       document.getElementById('sup-returns-badge-period').innerText = periodLabel;
 
-      const filtered = supReturnsData.map((ret, originalIdx) => ({ ...ret, originalIdx })).slice().reverse().filter(ret => {
+      const filteredReturns = supReturnsData.map((ret, originalIdx) => ({ ...ret, originalIdx })).slice().reverse().filter(ret => {
         if (!filterQuery) return true;
         const q = filterQuery.toLowerCase();
         return (ret.model && ret.model.toLowerCase().includes(q)) ||
                (ret.supplier && ret.supplier.toLowerCase().includes(q)) ||
-               (ret.reason && ret.reason.toLowerCase().includes(q)) ||
                (ret.status && ret.status.toLowerCase().includes(q)) ||
+               (ret.reason && ret.reason.toLowerCase().includes(q)) ||
                (ret.date && ret.date.includes(q));
       });
 
-      if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">No matching supplier return records found</td></tr>`;
+      if (filteredReturns.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">No supplier return records found for this monthly filter</td></tr>`;
       } else {
-        tbody.innerHTML = filtered.map(ret => `
-          <tr>
-            <td>${ret.date}</td>
-            <td><b>${ret.model}</b></td>
-            <td>${ret.supplier}</td>
-            <td>${ret.qty}</td>
-            <td>${ret.reason}</td>
-            <td><span class="badge ${ret.status === 'Replaced / Received' ? 'bg-success' : (ret.status === 'Sent Back' ? 'bg-primary' : 'bg-warning text-dark')}">${ret.status}</span></td>
-            <td class="no-print">
-              <button class="btn btn-sm btn-outline-success" onclick="restockSupplierReturn(${ret.originalIdx})">🔄 Restock</button>
-            </td>
-          </tr>
-        `).join('');
+        tbody.innerHTML = filteredReturns.map(ret => {
+          let statusBadge = '', rowClass = '';
+          if (ret.status === 'Replaced / Received') {
+            statusBadge = '<span class="badge bg-success p-2">🔄 Received Back & Restocked</span>';
+            rowClass = 'table-success';
+          } else if (ret.status === 'Sent Back') {
+            statusBadge = '<span class="badge bg-primary p-2">🚚 Sent to Supplier</span>';
+            rowClass = 'table-primary';
+          } else {
+            statusBadge = '<span class="badge bg-warning text-dark p-2">⏳ Pending Custody</span>';
+            rowClass = 'table-warning';
+          }
+
+          return `
+            <tr class="${rowClass}">
+              <td>${ret.date}</td>
+              <td><b>${ret.model}</b></td>
+              <td>${ret.supplier}</td>
+              <td>${ret.qty}</td>
+              <td>${ret.reason}</td>
+              <td>${statusBadge}</td>
+              <td class="no-print">
+                <button class="btn btn-sm btn-danger" onclick="deleteSupplierReturn(${ret.originalIdx})">Delete</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
       }
     }
 
@@ -2575,11 +2406,11 @@
 
     function sendSupplierReturnsToGmail() {
       const { supReturnsData, periodLabel } = getFilteredSupplierReturnsData();
-      if (supReturnsData.length === 0) return alert(`No supplier returns available for "${periodLabel}" to send!`);
+      if (supReturnsData.length === 0) return alert(`No supplier return records available for "${periodLabel}" to send!`);
 
       let emailBody = `SKY MODERNIZE SAVE TECHNOLOGY LTD - Supplier Returns Report\n`;
       emailBody += `Report Period: ${periodLabel}\n\n`;
-      emailBody += `--- SUPPLIER RETURNS ---\n`;
+      emailBody += `--- SUPPLIER RETURNS BATCH ---\n`;
       emailBody += `Date | Model | Supplier | Qty | Reason | Status\n`;
       emailBody += `-----------------------------------------------------------------------\n`;
 
@@ -2591,41 +2422,30 @@
       window.open(gmailUrl, '_blank');
     }
 
-    function restockSupplierReturn(idx) {
-      const ret = db.supplierReturns[idx];
-      if (!ret) return;
-      const item = db.stock.find(s => s.model.toLowerCase() === ret.model.toLowerCase());
-      if (item) {
-        item.qty += ret.qty;
-        ret.status = "Replaced / Received";
-        saveDB();
-        alert(`Successfully restocked ${ret.qty} units of "${ret.model}" back into inventory!`);
-      } else {
-        alert("Stock model not found in inventory. Please add it back manually.");
-      }
-    }
-
     document.getElementById('supplier-returns-form').addEventListener('submit', (e) => {
       e.preventDefault();
-      const model = document.getElementById('sup-return-item').value.trim();
-      const supplier = document.getElementById('sup-return-supplier').value.trim();
+      const modelName = document.getElementById('sup-return-item').value.trim();
+      const supplierName = document.getElementById('sup-return-supplier').value.trim();
       const qty = parseInt(document.getElementById('sup-return-qty').value);
       const status = document.getElementById('sup-return-status').value;
       const reason = document.getElementById('sup-return-reason').value.trim();
 
-      const item = db.stock.find(s => s.model.toLowerCase() === model.toLowerCase());
+      const item = db.stock.find(s => s.model.toLowerCase() === modelName.toLowerCase());
       if (!item) return alert("Model not found in stock inventory!");
-      if (item.qty < qty) return alert(`Insufficient stock! Only ${item.qty} pcs available.`);
+      if (item.qty < qty) return alert(`Insufficient stock! Only ${item.qty} pcs available to return to supplier.`);
 
       item.qty -= qty;
+      if (status === 'Replaced / Received') {
+        item.qty += qty; // Immediate restock
+      }
 
       db.supplierReturns.push({
         date: new Date().toISOString().split('T')[0],
-        model: model,
-        supplier: supplier,
+        model: modelName,
+        supplier: supplierName,
         qty: qty,
-        status: status,
-        reason: reason
+        reason: reason,
+        status: status
       });
 
       saveDB();
@@ -2633,38 +2453,46 @@
       alert("✅ Supplier return successfully recorded and stock adjusted!");
     });
 
+    function deleteSupplierReturn(index) {
+      if (confirm("Delete this supplier return record?")) {
+        db.supplierReturns.splice(index, 1);
+        saveDB();
+      }
+    }
+
     function renderRequisitions(filterQuery = "") {
       const tbody = document.getElementById('requisition-table-body');
-      const filtered = db.requisitions.map((req, originalIdx) => ({ ...req, originalIdx })).slice().reverse().filter(req => {
+      const filteredReqs = db.requisitions.map((req, originalIdx) => ({ ...req, originalIdx })).slice().reverse().filter(req => {
         if (!filterQuery) return true;
         const q = filterQuery.toLowerCase();
         return (req.item && req.item.toLowerCase().includes(q)) ||
                (req.category && req.category.toLowerCase().includes(q)) ||
                (req.supplier && req.supplier.toLowerCase().includes(q)) ||
-               (req.id && req.id.toLowerCase().includes(q)) ||
-               (req.status && req.status.toLowerCase().includes(q));
+               (req.status && req.status.toLowerCase().includes(q)) ||
+               (req.id && req.id.toLowerCase().includes(q));
       });
 
-      if (filtered.length === 0) {
+      if (filteredReqs.length === 0) {
         tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted py-3">No purchase requisitions found</td></tr>`;
       } else {
-        tbody.innerHTML = filtered.map(req => {
-          const estCost = req.cost || 0;
-          const estTotal = estCost * req.qty;
+        tbody.innerHTML = filteredReqs.map(req => {
+          const estTotal = (req.cost || 0) * req.qty;
+          let statusBadge = req.status === 'Approved' ? '<span class="badge bg-success">Approved ✅</span>' : '<span class="badge bg-warning text-dark">Pending ⏳</span>';
           return `
             <tr>
-              <td><code>${req.id}</code></td>
+              <td><b>${req.id}</b></td>
               <td>${req.date}</td>
               <td><b>${req.item}</b></td>
               <td>${req.category}</td>
               <td><b>${req.qty}</b></td>
-              <td>₦${estCost.toLocaleString()}</td>
+              <td>₦${(req.cost || 0).toLocaleString()}</td>
               <td class="text-success fw-bold">₦${estTotal.toLocaleString()}</td>
               <td>${req.supplier || '-'}</td>
-              <td><span class="badge ${req.status === 'Completed' ? 'bg-success' : 'bg-warning text-dark'}">${req.status}</span></td>
+              <td>${statusBadge}</td>
               <td class="no-print">
-                <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditRequisitionModal(${req.originalIdx})">Edit</button>
-                <button class="btn btn-sm btn-success" onclick="completeRequisition(${req.originalIdx})">✅ Receive</button>
+                <button class="btn btn-sm btn-outline-primary mb-1" onclick="openEditRequisitionModal(${req.originalIdx})">Edit</button>
+                <button class="btn btn-sm btn-success mb-1" onclick="toggleRequisitionStatus(${req.originalIdx})">Toggle Status</button>
+                <button class="btn btn-sm btn-danger mb-1" onclick="deleteRequisition(${req.originalIdx})">Delete</button>
               </td>
             </tr>
           `;
@@ -2677,93 +2505,50 @@
     }
 
     function sendRequisitionToGmail() {
-      if (db.requisitions.length === 0) return alert("No purchase requisitions to send!");
+      if (db.requisitions.length === 0) return alert("No purchase requisitions available to send!");
       let emailBody = `SKY MODERNIZE SAVE TECHNOLOGY LTD - Purchase Requisitions\n\n`;
       db.requisitions.forEach(r => {
-        emailBody += `[${r.id}] ${r.date} | ${r.item} (${r.category}) | Qty: ${r.qty} | Supplier: ${r.supplier || 'N/A'} | Status: ${r.status}\n`;
+        emailBody += `Req ID: ${r.id} | Date: ${r.date} | Item: ${r.item} (${r.category}) | Qty: ${r.qty} | Est Cost: ₦${(r.cost || 0) * r.qty} | Supplier: ${r.supplier || 'N/A'} | Status: ${r.status}\n`;
       });
-      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(`SKY MODERNIZE - Purchase Requisitions Report`)}&body=${encodeURIComponent(emailBody)}`;
+      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(`SKY MODERNIZE - Purchase Requisitions Order`)}&body=${encodeURIComponent(emailBody)}`;
       window.open(gmailUrl, '_blank');
-    }
-
-    function completeRequisition(idx) {
-      const req = db.requisitions[idx];
-      if (!req) return;
-      if (req.status === 'Completed') return alert("Requisition is already marked completed!");
-
-      const stockItem = db.stock.find(s => s.model.toLowerCase() === req.item.toLowerCase());
-      if (stockItem) {
-        stockItem.qty += req.qty;
-      } else {
-        db.stock.push({
-          model: req.item,
-          category: req.category.split('/')[0].trim() || "General",
-          subcat: req.category.includes('/') ? req.category.split('/')[1].trim() : "",
-          qty: req.qty,
-          cost_price: req.cost || 0,
-          sell_price: Math.floor((req.cost || 0) * 1.3),
-          supplier: req.supplier || ""
-        });
-      }
-
-      req.status = 'Completed';
-      saveDB();
-      alert(`✅ Requisition ${req.id} fulfilled! ${req.qty} units of "${req.item}" added to stock inventory.`);
     }
 
     document.getElementById('requisition-form').addEventListener('submit', (e) => {
       e.preventDefault();
-      const item = document.getElementById('req-item').value.trim();
-      const category = document.getElementById('req-cat').value.trim();
-      const qty = parseInt(document.getElementById('req-qty').value);
-      const cost = parseFloat(document.getElementById('req-cost').value) || 0;
-      const supplier = document.getElementById('req-supplier').value.trim();
-      const notes = document.getElementById('req-notes').value.trim();
-
       const reqId = "REQ-" + Math.floor(1000 + Math.random() * 9000);
       db.requisitions.push({
         id: reqId,
         date: new Date().toISOString().split('T')[0],
-        item: item,
-        category: category,
-        qty: qty,
-        cost: cost,
-        supplier: supplier,
-        notes: notes,
+        item: document.getElementById('req-item').value.trim(),
+        category: document.getElementById('req-cat').value.trim(),
+        qty: parseInt(document.getElementById('req-qty').value),
+        cost: parseInt(document.getElementById('req-cost').value) || 0,
+        supplier: document.getElementById('req-supplier').value.trim(),
+        notes: document.getElementById('req-notes').value.trim(),
         status: "Pending"
       });
-
-      saveDB();
-      document.getElementById('requisition-form').reset();
-      alert("📋 Purchase requisition submitted successfully!");
-    });
-
-    document.getElementById('stock-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const model = document.getElementById('stk-model').value.trim();
-      const category = document.getElementById('stk-cat').value.trim();
-      const subcat = document.getElementById('stk-subcat').value.trim();
-      const qty = parseInt(document.getElementById('stk-qty').value);
-      const cost_price = parseInt(document.getElementById('stk-cost').value);
-      const sell_price = parseInt(document.getElementById('stk-sell').value);
-      const supplier = document.getElementById('stk-supplier').value.trim();
-
-      db.stock.push({ model, category, subcat, qty, cost_price, sell_price, supplier });
       saveDB();
       e.target.reset();
-      alert("✅ New stock entry added successfully!");
+      alert("📋 Purchase requisition successfully submitted!");
     });
 
-    function deleteStock(index) {
-      if (!isManagerUnlocked) return navigateTo('manager-auth');
-      if (confirm("Are you sure you want to delete this stock item?")) {
-        db.stock.splice(index, 1);
+    function toggleRequisitionStatus(index) {
+      const req = db.requisitions[index];
+      if (req) {
+        req.status = req.status === 'Pending' ? 'Approved' : 'Pending';
+        saveDB();
+      }
+    }
+
+    function deleteRequisition(index) {
+      if (confirm("Delete this purchase requisition?")) {
+        db.requisitions.splice(index, 1);
         saveDB();
       }
     }
 
     function openEditModal(index) {
-      if (!isManagerUnlocked) return navigateTo('manager-auth');
       const item = db.stock[index];
       if (!item) return;
       document.getElementById('edit-stk-index').value = index;
@@ -2779,8 +2564,10 @@
 
     document.getElementById('edit-stock-form').addEventListener('submit', (e) => {
       e.preventDefault();
-      const index = parseInt(document.getElementById('edit-stk-index').value);
-      db.stock[index] = {
+      const idx = parseInt(document.getElementById('edit-stk-index').value);
+      if (isNaN(idx) || !db.stock[idx]) return;
+
+      db.stock[idx] = {
         model: document.getElementById('edit-stk-model').value.trim(),
         category: document.getElementById('edit-stk-cat').value.trim(),
         subcat: document.getElementById('edit-stk-subcat').value.trim(),
@@ -2789,9 +2576,10 @@
         sell_price: parseInt(document.getElementById('edit-stk-sell').value),
         supplier: document.getElementById('edit-stk-supplier').value.trim()
       };
-      bootstrap.Modal.getInstance(document.getElementById('editStockModal')).hide();
+
       saveDB();
-      alert("✅ Stock details updated successfully!");
+      bootstrap.Modal.getInstance(document.getElementById('editStockModal')).hide();
+      alert("✅ Stock item successfully updated!");
     });
 
     function openEditRequisitionModal(index) {
@@ -2801,7 +2589,7 @@
       document.getElementById('edit-req-item').value = req.item;
       document.getElementById('edit-req-cat').value = req.category;
       document.getElementById('edit-req-qty').value = req.qty;
-      document.getElementById('edit-req-cost').value = req.cost || '';
+      document.getElementById('edit-req-cost').value = req.cost || 0;
       document.getElementById('edit-req-supplier').value = req.supplier || '';
       document.getElementById('edit-req-notes').value = req.notes || '';
       new bootstrap.Modal(document.getElementById('editRequisitionModal')).show();
@@ -2809,54 +2597,46 @@
 
     document.getElementById('edit-requisition-form').addEventListener('submit', (e) => {
       e.preventDefault();
-      const index = parseInt(document.getElementById('edit-req-index').value);
-      db.requisitions[index].item = document.getElementById('edit-req-item').value.trim();
-      db.requisitions[index].category = document.getElementById('edit-req-cat').value.trim();
-      db.requisitions[index].qty = parseInt(document.getElementById('edit-req-qty').value);
-      db.requisitions[index].cost = parseFloat(document.getElementById('edit-req-cost').value) || 0;
-      db.requisitions[index].supplier = document.getElementById('edit-req-supplier').value.trim();
-      db.requisitions[index].notes = document.getElementById('edit-req-notes').value.trim();
+      const idx = parseInt(document.getElementById('edit-req-index').value);
+      if (isNaN(idx) || !db.requisitions[idx]) return;
 
-      bootstrap.Modal.getInstance(document.getElementById('editRequisitionModal')).hide();
+      db.requisitions[idx].item = document.getElementById('edit-req-item').value.trim();
+      db.requisitions[idx].category = document.getElementById('edit-req-cat').value.trim();
+      db.requisitions[idx].qty = parseInt(document.getElementById('edit-req-qty').value);
+      db.requisitions[idx].cost = parseInt(document.getElementById('edit-req-cost').value) || 0;
+      db.requisitions[idx].supplier = document.getElementById('edit-req-supplier').value.trim();
+      db.requisitions[idx].notes = document.getElementById('edit-req-notes').value.trim();
+
       saveDB();
-      alert("✅ Purchase requisition updated successfully!")
+      bootstrap.Modal.getInstance(document.getElementById('editRequisitionModal')).hide();
+      alert("✅ Requisition successfully updated!");
     });
- // --- SUPABASE REAL-TIME MONIEPOINT LISTENER ---
-// Reuse your existing 'supabaseClient' instance
-supabaseClient
-    .channel('public:transactions')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'transactions' }, payload => {
-        const newPayment = payload.new;
 
-        // 1. Trigger the Bootstrap Toast Popup
-        const toastMessage = document.getElementById('toast-message');
-        if (toastMessage) {
-            toastMessage.innerText = `${newPayment.customer_name} paid ₦${Number(newPayment.amount).toLocaleString()}!`;
-            const toastElement = new bootstrap.Toast(document.getElementById('moniepoint-toast'));
-            toastElement.show();
-        }
+    function deleteStock(index) {
+      if (confirm("Are you sure you want to delete this stock entry?")) {
+        db.stock.splice(index, 1);
+        saveDB();
+      }
+    }
 
-        // 2. Dynamically add the new transaction to your Moniepoint Payment table
-        const tbody = document.getElementById('moniepoint-table-body');
-        if (tbody) {
-            if (tbody.querySelector('.text-muted')) {
-                tbody.innerHTML = '';
-            }
-            
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${new Date().toLocaleString()}</td>
-                <td>${newPayment.reference || 'N/A'}</td>
-                <td>${newPayment.customer_name}</td>
-                <td>N/A</td>
-                <td class="fw-bold text-success">₦${Number(newPayment.amount).toLocaleString()}</td>
-                <td><span class="badge bg-success">Successful</span></td>
-            `;
-            tbody.prepend(row);
-        }
-    })
-    .subscribe();
+    document.getElementById('stock-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      db.stock.push({
+        model: document.getElementById('stk-model').value.trim(),
+        category: document.getElementById('stk-cat').value.trim(),
+        subcat: document.getElementById('stk-subcat').value.trim(),
+        qty: parseInt(document.getElementById('stk-qty').value),
+        cost_price: parseInt(document.getElementById('stk-cost').value),
+        sell_price: parseInt(document.getElementById('stk-sell').value),
+        supplier: document.getElementById('stk-supplier').value.trim()
+      });
+      saveDB();
+      e.target.reset();
+      alert("✅ Stock item successfully added!");
+    });
 
+    // Initialize initial render
+    renderAll();
   </script>
 </body>
 </html>
