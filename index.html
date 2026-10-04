@@ -4282,7 +4282,7 @@ function updateThemeButton(theme) {
         navigateTo('login'); 
       } 
     } 
-    
+    }
 
     // === BULK PRICE ADJUSTMENT WITH CATEGORY/SUBCATEGORY/SUPPLIER - FIXED ===
     function populateBulkPriceCategories(){
@@ -4424,23 +4424,21 @@ function updateThemeButton(theme) {
       const bulkCount=activityLogs.filter(l=>l.action==='bulk_price_edit').length;
       const highQtyCount=activityLogs.filter(l=>l.action==='high_qty_sale').length;
       const priceEditCount=activityLogs.filter(l=>l.action==='price_edited_sale').length;
-      const loginCount=activityLogs.filter(l=>l.action==='login').length;
+      const loginOnlyCount=activityLogs.filter(l=>l.action==='login').length;
       const failedLoginCount=activityLogs.filter(l=>l.action==='failed_login').length;
       const logoutCount=activityLogs.filter(l=>l.action==='logout').length;
-      const loginCount=activityLogs.filter(l=>l.action==='login'||l.action==='logout').length;
+      const loginTotalCount=activityLogs.filter(l=>l.action==='login'||l.action==='logout').length;
       document.getElementById('activity-count-bulk').innerText=bulkCount;
       document.getElementById('activity-count-highqty').innerText=highQtyCount;
       document.getElementById('activity-count-priceedit').innerText=priceEditCount;
       const loginEl=document.getElementById('activity-count-login');
-      if(loginEl) loginEl.innerText=loginCount;
-      const loginEl=document.getElementById('activity-count-login');
-      if(loginEl) loginEl.innerText=loginCount;
+      if(loginEl) loginEl.innerText=loginOnlyCount;
       document.getElementById('activity-count-total').innerText=filtered.length;
       document.getElementById('activity-count-date').innerText= dateFilter || 'All time';
       if(badge) badge.innerText=filtered.length+' logs';
       
       if(filtered.length===0){
-        tbody.innerHTML='<tr><td colspan="7" class="text-center text-muted py-4">No activities for selected filters</td></tr>';
+        tbody.innerHTML='<tr><td colspan="8" class="text-center text-muted py-4">No activities for selected filters</td></tr>';
         return;
       }
       
